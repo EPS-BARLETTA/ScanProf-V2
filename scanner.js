@@ -71,6 +71,19 @@ function handleScan(decodedText, outlet) {
 
     const fallback = legacyStoreParticipants(payload);
     showMessage(outlet, fallback.message, fallback.ok);
+    if (fallback.ok && store && typeof store.storeSnapshot === "function") {
+      const entries = Array.isArray(payload)
+        ? payload
+        : payload && typeof payload === "object"
+        ? [payload]
+        : [];
+      if (entries.length) {
+        store.storeSnapshot(entries, decodedText, {
+          source: "qr",
+          label: inferSnapshotLabel(payload),
+        });
+      }
+    }
   } catch (err) {
     console.warn("ScanProf — unable to parse QR payload", err);
     showMessage(outlet, "❌ QR Code invalide ou format non pris en charge.", false);

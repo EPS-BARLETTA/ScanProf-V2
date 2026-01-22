@@ -269,7 +269,7 @@ function ensureStickyStyles() {
   const css = `
   /* conteneur scroll horizontal (iPad ok) */
   #participants-scroll {
-    overflow-x: auto; overflow-y: visible;
+    overflow-x: auto; overflow-y: auto;
     -webkit-overflow-scrolling: touch;
     touch-action: auto;
     overscroll-behavior-x: contain;
@@ -584,6 +584,9 @@ function updateTable(data) {
   const thead = document.getElementById("table-head");
   const tbody = document.getElementById("participants-body");
   if (!thead || !tbody) return;
+  const scrollerEl = document.getElementById("participants-scroll");
+  const prevScrollLeft = scrollerEl ? scrollerEl.scrollLeft : 0;
+  const prevScrollTop = scrollerEl ? scrollerEl.scrollTop : 0;
 
   if (!data || data.length === 0) {
     thead.innerHTML = "";
@@ -614,7 +617,11 @@ function updateTable(data) {
 
   window.addEventListener("resize", applyStickyFirstTwo, { passive: true });
   const scroller = document.getElementById("participants-scroll");
-  if (scroller) scroller.addEventListener("scroll", () => {/* sticky natif */}, { passive: true });
+  if (scroller) {
+    scroller.addEventListener("scroll", () => {/* sticky natif */}, { passive: true });
+    scroller.scrollLeft = prevScrollLeft;
+    scroller.scrollTop = prevScrollTop;
+  }
 }
 
 // ------------ Filtre texte ------------
@@ -687,23 +694,52 @@ function supprimerColonneManuelle() {
     alert("Aucune colonne personnalisée à supprimer.");
     return;
   }
-  const list = customs.map((col, idx) => `${idx + 1}. ${col.label || col.key} (${col.key})`).join("\n");
-  let choix = prompt(`Quelle colonne voulez-vous retirer ?\n${list}`);
-  if (choix == null) return;
-  choix = choix.trim();
-  let index = -1;
-  const normalized = normalizeColumnKey(choix);
-  if (normalized) index = customs.findIndex(col => col.key === normalized);
-  if (index === -1) {
-    const num = parseInt(choix, 10);
-    if (!isNaN(num) && num >= 1 && num <= customs.length) index = num - 1;
-  }
-  if (index === -1) {
-    alert("Colonne introuvable.");
-    return;
-  }
-  const col = customs.splice(index, 1)[0];
-  saveCustomColumns(customs);
+  const overlay = document.createElement("div");
+  overlay.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;z-index:99999;";
+  const card = document.createElement("div");
+  card.style.cssText = "background:var(--sp-surface,#fff);color:var(--sp-text,#111);padding:16px 18px;border-radius:12px;min-width:280px;box-shadow:0 14px 34px rgba(0,0,0,.25);";
+  const title = document.createElement("h3");
+  title.textContent = "Supprimer une colonne";
+  title.style.margin = "0 0 10px";
+  const select = document.createElement("select");
+  select.style.cssText = "width:100%;padding:8px 10px;border:1px solid var(--sp-border,#ccc);border-radius:8px;margin-bottom:14px;";
+  customs.forEach(col => {
+    const opt = document.createElement("option");
+    opt.value = col.key;
+    opt.textContent = col.label || col.key;
+    select.appendChild(opt);
+  });
+  const actions = document.createElement("div");
+  actions.style.cssText = "display:flex;gap:8px;justify-content:flex-end;";
+  const cancelBtn = document.createElement("button");
+  cancelBtn.type = "button";
+  cancelBtn.textContent = "Annuler";
+  cancelBtn.style.cssText = "padding:8px 12px;border-radius:8px;border:1px solid var(--sp-border,#ccc);background:var(--sp-surface,#fff);cursor:pointer;";
+  const confirmBtn = document.createElement("button");
+  confirmBtn.type = "button";
+  confirmBtn.textContent = "Supprimer";
+  confirmBtn.style.cssText = "padding:8px 12px;border-radius:8px;border:1px solid var(--sp-accent-red,#c00);background:var(--sp-accent-red,#c00);color:#fff;cursor:pointer;";
+  actions.append(cancelBtn, confirmBtn);
+  card.append(title, select, actions);
+  overlay.appendChild(card);
+  document.body.appendChild(overlay);
+
+  const cleanup = () => overlay.remove();
+  cancelBtn.addEventListener("click", cleanup);
+
+  confirmBtn.addEventListener("click", () => {
+    const key = select.value;
+    cleanup();
+    if (!key) return;
+    const index = customs.findIndex(col => col.key === key);
+    if (index === -1) return;
+    const col = customs.splice(index, 1)[0];
+    applyColumnRemoval(col, customs);
+  });
+}
+
+function applyColumnRemoval(col, updatedCustoms) {
+  saveCustomColumns(updatedCustoms);
   const arr = loadEleves();
   arr.forEach(entry => {
     if (!entry || typeof entry !== "object") return;
@@ -726,7 +762,7 @@ function ajouterParticipantInline() {
   _vueCourante = augmentData(_elevesBrut);
   if (!_editMode) toggleEditMode(true);
   updateTable(_vueCourante);
-  setTimeout(() => focusInlineCell(blank.__id, "nom"), 80);
+  focusInlineCell(blank.__id, "nom");
 }
 
 function focusInlineCell(rowId, field) {
@@ -1027,7 +1063,7 @@ function applyInlineEdit(rowId, field, rawValue, nextFocus) {
   }
   updateTable(_vueCourante.length ? _vueCourante : augmentData(_elevesBrut));
   if (nextFocus && nextFocus.rowId && nextFocus.field) {
-    setTimeout(() => focusInlineCell(nextFocus.rowId, nextFocus.field), 80);
+    focusInlineCell(nextFocus.rowId, nextFocus.field);
   }
   return true;
 }
