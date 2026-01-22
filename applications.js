@@ -133,7 +133,7 @@
   function renderList() {
     if (!state.filtered.length) {
       dom.list.innerHTML =
-        '<div class="app-detail-empty"><p>Aucune application archivée pour le moment.</p></div>';
+        '<div class="app-detail-empty"><p>Aucune archive pour l’instant. Scannez un QR (participants ou appli) afin de le conserver ici.</p></div>';
       return;
     }
     dom.list.innerHTML = state.filtered
@@ -152,8 +152,8 @@
         return `
         <article class="app-card ${selected}" data-app="${app.id}" role="button" tabindex="0" aria-pressed="${selected ? "true" : "false"}">
           <div class="app-title">
-            <span>${escapeHtml(app.name || "Application")}</span>
-            <small>${escapeHtml(app.type || "app")}</small>
+            <span>${escapeHtml(app.name || "Archive")}</span>
+            <small>${escapeHtml(humanRecordType(app))}</small>
           </div>
           <div class="app-meta">${meta}</div>
           ${tags ? `<div class="app-tags">${tags}</div>` : ""}
@@ -174,14 +174,14 @@
       return;
     }
 
-    const metaCards = [
-      { label: "Scanné", value: window.ScanProfStore.formatDate(record.savedAt || record.createdAt) },
-      { label: "Créé le", value: window.ScanProfStore.formatDate(record.createdAt) },
-      { label: "Participants", value: `${record.participantsCount || 0}` },
-      { label: "Type", value: record.type || "—" },
-      { label: "Auteur", value: record.author || "—" },
-      { label: "Source", value: record.source || "QR" },
-    ];
+      const metaCards = [
+        { label: "Scanné", value: window.ScanProfStore.formatDate(record.savedAt || record.createdAt) },
+        { label: "Créé le", value: window.ScanProfStore.formatDate(record.createdAt) },
+        { label: "Participants", value: `${record.participantsCount || 0}` },
+        { label: "Type", value: humanRecordType(record) },
+        { label: "Auteur", value: record.author || "—" },
+        { label: "Source", value: record.source || "QR" },
+      ];
 
     const metaList = Object.entries(record.meta || {});
     const metaPreview = metaList.slice(0, 8);
@@ -190,11 +190,18 @@
     const participantsPreview = buildParticipantsPreview(record.participants || []);
 
     const rawJson = escapeHtml(JSON.stringify(record.payload || {}, null, 2));
+    const mutedColor = cssVar("--sp-muted", "#666");
     dom.detail.innerHTML = `
       <div class="app-detail-header">
         <h2>${escapeHtml(record.name || "Application")}</h2>
         <p>Version ${escapeHtml(record.version || "1.0")} • ${escapeHtml(record.description || "Aucune description")}</p>
       </div>
+
+      ${
+        record.kind === "snapshot"
+          ? `<p style="margin:6px 0 12px;color:${escapeHtml(mutedColor)};">Cet instantané conserve la liste telle qu'elle a été scannée. Utilisez “Importer” pour fusionner les élèves ou “Exporter” pour récupérer le JSON.</p>`
+          : ""
+      }
 
       <div class="app-detail-meta">
         ${metaCards
@@ -332,5 +339,13 @@
   function cssVar(name, fallback) {
     const value = getComputedStyle(document.documentElement).getPropertyValue(name);
     return value && value.trim() ? value.trim() : fallback;
+  }
+
+  function humanRecordType(record) {
+    if (!record) return "Application";
+    if (record.kind === "snapshot" || (record.type || "").toLowerCase() === "snapshot") {
+      return "Instantané";
+    }
+    return record.type || "Application";
   }
 })();

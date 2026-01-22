@@ -171,6 +171,7 @@
       participantsCount: participants.length,
       payload: clone,
       fingerprint,
+      kind: "app",
     };
   }
 
@@ -215,6 +216,45 @@
     records.unshift(normalized);
     saveRecords(records);
     return { ok: true, record: normalized };
+  }
+
+  function storeSnapshot(participants, rawText, options = {}) {
+    if (!Array.isArray(participants) || !participants.length) return { ok: false, reason: "empty" };
+    const normalized = participants.map((p) => normalizeParticipantEntry(p));
+    const payload = { participants: normalized };
+    const name =
+      options.label ||
+      firstNonEmpty([
+        options.sourceLabel,
+        options.source,
+        (options.meta && options.meta.name),
+      ]) ||
+      `Participants importés (${new Date().toLocaleDateString()})`;
+    const fingerprint = fingerprintString(rawText || JSON.stringify(payload));
+    const records = loadRecords();
+    const existing = records.find((rec) => rec.fingerprint === fingerprint);
+    if (existing) return { ok: false, reason: "exists", record: existing };
+    const record = {
+      id: `snap_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 7)}`,
+      name,
+      version: options.version || "-",
+      type: options.type || "snapshot",
+      kind: "snapshot",
+      description: options.description || "Liste de participants importée depuis un QR.",
+      author: options.author || "",
+      createdAt: new Date().toISOString(),
+      savedAt: new Date().toISOString(),
+      tags: options.tags || ["snapshot"],
+      meta: options.meta || {},
+      participants: normalized,
+      participantsCount: normalized.length,
+      payload,
+      fingerprint,
+      source: options.source || "qr",
+    };
+    records.unshift(record);
+    saveRecords(records);
+    return { ok: true, record };
   }
 
   function participantKey(entry = {}) {
@@ -292,6 +332,7 @@
     normalizeParticipantEntry,
     participantKey,
     storeAppBundle,
+    storeSnapshot,
     listBundles,
     getBundleById,
     deleteBundle,

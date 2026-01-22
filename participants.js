@@ -681,6 +681,42 @@ function ajouterColonneManuelle() {
   updateTable(_vueCourante.length ? _vueCourante : augmentData(_elevesBrut));
 }
 
+function supprimerColonneManuelle() {
+  const customs = loadCustomColumns();
+  if (!customs.length) {
+    alert("Aucune colonne personnalisée à supprimer.");
+    return;
+  }
+  const list = customs.map((col, idx) => `${idx + 1}. ${col.label || col.key} (${col.key})`).join("\n");
+  let choix = prompt(`Quelle colonne voulez-vous retirer ?\n${list}`);
+  if (choix == null) return;
+  choix = choix.trim();
+  let index = -1;
+  const normalized = normalizeColumnKey(choix);
+  if (normalized) index = customs.findIndex(col => col.key === normalized);
+  if (index === -1) {
+    const num = parseInt(choix, 10);
+    if (!isNaN(num) && num >= 1 && num <= customs.length) index = num - 1;
+  }
+  if (index === -1) {
+    alert("Colonne introuvable.");
+    return;
+  }
+  const col = customs.splice(index, 1)[0];
+  saveCustomColumns(customs);
+  const arr = loadEleves();
+  arr.forEach(entry => {
+    if (!entry || typeof entry !== "object") return;
+    delete entry[col.key];
+    if (entry.__labels) delete entry.__labels[col.key];
+    if (entry.__types) delete entry.__types[col.key];
+  });
+  saveEleves(arr);
+  _elevesBrut = arr.slice();
+  _vueCourante = augmentData(_elevesBrut);
+  updateTable(_vueCourante);
+}
+
 function ajouterParticipantInline() {
   const arr = loadEleves();
   const blank = createBlankEntry();
@@ -699,6 +735,28 @@ function focusInlineCell(rowId, field) {
   if (!row) return;
   const td = row.querySelector(`td[data-field="${field}"]`);
   if (td) startInlineEdit(td, { force: true });
+}
+
+function resolveNextEditableCell(rowId, field, step) {
+  const cols = _lastCols || [];
+  const rows = _vueCourante || [];
+  if (!cols.length || !rows.length) return null;
+  let rowIndex = rows.findIndex(r => r && r.__id === rowId);
+  let colIndex = cols.indexOf(field);
+  if (rowIndex === -1 || colIndex === -1) return null;
+  const total = rows.length * cols.length;
+  for (let i = 0; i < total; i++) {
+    colIndex += step;
+    if (colIndex >= cols.length) { colIndex = 0; rowIndex += 1; }
+    else if (colIndex < 0) { colIndex = cols.length - 1; rowIndex -= 1; }
+    if (rowIndex < 0 || rowIndex >= rows.length) return null;
+    const nextField = cols[colIndex];
+    if (!nextField || isInternalKey(nextField)) continue;
+    const nextRow = rows[rowIndex];
+    if (!nextRow || !nextRow.__id) continue;
+    return { rowId: nextRow.__id, field: nextField };
+  }
+  return null;
 }
 
 // ------------ Tri dynamique (avec ↑/↓ et détection nombres/temps) ------------
@@ -913,7 +971,7 @@ function startInlineEdit(td, options = {}) {
     if (restoreHtml) td.innerHTML = previousHtml;
   };
 
-  const commit = (save) => {
+  const commit = (save, next) => {
     if (!save) {
       cleanup(true);
       return;
@@ -924,7 +982,7 @@ function startInlineEdit(td, options = {}) {
       return;
     }
     closed = true;
-    const success = applyInlineEdit(rowId, field, newValue);
+    const success = applyInlineEdit(rowId, field, newValue, next);
     if (!success) cleanup(true);
   };
 
@@ -935,6 +993,11 @@ function startInlineEdit(td, options = {}) {
     } else if (e.key === "Escape") {
       e.preventDefault();
       cleanup(true);
+    } else if (e.key === "Tab") {
+      e.preventDefault();
+      const direction = e.shiftKey ? -1 : 1;
+      const target = resolveNextEditableCell(rowId, field, direction);
+      commit(true, target);
     }
   });
   input.addEventListener("blur", () => commit(true));
@@ -947,7 +1010,7 @@ function valueToText(val) {
   return String(val);
 }
 
-function applyInlineEdit(rowId, field, rawValue) {
+function applyInlineEdit(rowId, field, rawValue, nextFocus) {
   if (!rowId || !field) return false;
   const arr = loadEleves();
   const target = arr.find(entry => entry && entry.__id === rowId);
@@ -963,6 +1026,9 @@ function applyInlineEdit(rowId, field, rawValue) {
     if (row) row[field] = sanitized;
   }
   updateTable(_vueCourante.length ? _vueCourante : augmentData(_elevesBrut));
+  if (nextFocus && nextFocus.rowId && nextFocus.field) {
+    setTimeout(() => focusInlineCell(nextFocus.rowId, nextFocus.field), 80);
+  }
   return true;
 }
 

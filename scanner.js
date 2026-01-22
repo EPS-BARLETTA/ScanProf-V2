@@ -45,6 +45,13 @@ function handleScan(decodedText, outlet) {
         `✅ Participants synchronisés${detail}. Total actuel : ${stats.total}.`,
         true
       );
+      if (store && typeof store.storeSnapshot === "function") {
+        const label = inferSnapshotLabel(payload);
+        store.storeSnapshot(participants, decodedText, {
+          source: "qr",
+          label,
+        });
+      }
       return;
     }
 
@@ -132,6 +139,26 @@ function legacyStoreParticipants(payload) {
   result.ok = true;
   result.message = `✅ QR Code enregistré (mode rétro). ${added} nouveau(x).`;
   return result;
+}
+
+function inferSnapshotLabel(payload) {
+  if (!payload || typeof payload !== "object" || Array.isArray(payload)) return "";
+  const meta = payload.meta || payload.metadata || payload.info || payload.infos || {};
+  const candidates = [
+    payload.appName,
+    payload.app,
+    payload.application,
+    payload.name,
+    payload.nom,
+    payload.titre,
+    meta.appName,
+    meta.application,
+    meta.nom,
+  ];
+  for (const c of candidates) {
+    if (c && String(c).trim()) return String(c).trim();
+  }
+  return "";
 }
 
 function showMessage(outlet, text, success) {

@@ -56,7 +56,6 @@
         <label for="filtre-txt">Filtrer (texte) :</label>
         <input id="filtre-txt" type="text" placeholder="ex. Lola, 5A, F..." oninput="filtrerTexte()">
         <button class="button" onclick="filtrerTexte()">🔎 Rechercher</button>
-        <button id="edit-mode-btn" class="button purple" type="button" onclick="toggleEditMode()">✏️ Mode édition</button>
       </div>
 
       <!-- Exports / impression -->
@@ -87,13 +86,18 @@
       </div>
 
       <!-- Navigation -->
-      <div class="actions" style="margin-top:12px;">
+      <div class="actions" style="margin-top:12px; flex-wrap:wrap;">
         <button type="button" class="button blue" onclick="ajouterColonneManuelle()">➕ Ajouter une colonne</button>
+        <button type="button" class="button red" onclick="supprimerColonneManuelle()">➖ Supprimer une colonne</button>
         <button type="button" class="button orange" onclick="ajouterParticipantInline()">➕ Ajouter un élève</button>
+        <button id="edit-mode-btn" class="button purple" type="button" onclick="toggleEditMode()">✏️ Mode édition actif</button>
         <a href="applications.html" class="button teal">🧩 Explorateur d'apps</a>
-        <a href="groupe-zenos.html" class="button yellow">🧬 Groupes ZENOS Tour</a>
+      </div>
+      <div class="actions" style="margin-top:8px; flex-wrap:wrap;">
         <a href="index.html" class="button green">🏠 Accueil</a>
+        <a href="scanner.html" class="button blue">📷 Scanner des QR Codes</a>
         <a href="aide.html" class="button purple">❓ Aide</a>
+        <a href="groupe-zenos.html" class="button yellow">🧬 Groupes ZENOS Tour</a>
       </div>
     </main>
 
