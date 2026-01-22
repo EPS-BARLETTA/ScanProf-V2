@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>ScanProf</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    /* Petits ajustements spécifiques à l'accueil */
+    .accueil-wrap {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    .accueil-main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1rem;
+      text-align: center;
+    }
+    .accueil-main h1 {
+      font-size: clamp(2rem, 6vw, 3.2rem);
+      margin-bottom: 1.2rem;
+    }
+    .button-group {
+      display: grid;
+      gap: 12px;
+      grid-template-columns: 1fr;
+      width: min(520px, 90vw);
+      margin: 0 auto;
+    }
+    .button-group a.button {
+      display: block;
+      padding: 14px 16px;
+      border-radius: 10px;
+      text-decoration: none;
+      font-weight: 600;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      text-align: center;
+    }
+    .button.blue   { background:#1e90ff; color:#fff; }
+    .button.green  { background:#28a745; color:#fff; }
+    .button.yellow { background:#ffcc00; color:#222; }
+    .button.orange { background:#ff8c5c; color:#fff; }
+    .button.purple { background:#8e44ad; color:#fff; }
+    footer {
+      background:#1e90ff;
+      color:#fff;
+      text-align:center;
+      padding:10px 12px;
+    }
+  </style>
+</head>
+<body>
+  <div class="accueil-wrap">
+    <main class="accueil-main">
+      <h1>📚 ScanProf</h1>
+      <div class="button-group">
+        <a href="scanner.html" class="button blue">📷 Scanner des QR Codes</a>
+        <a href="participants.html" class="button green">👥 Participants enregistrés</a>
+        <a href="applications.html" class="button orange">🧩 Explorateur d'apps</a>
+        <a href="groupe-zenos.html" class="button yellow">🧬 Groupes ZENOS Tour</a>
+        <a href="aide.html" class="button purple">❓ Aide</a>
+      </div>
+    </main>
+
+    <footer>
+      ScanProf - Équipe EPS Lycée Vauban - LUXEMBOURG - JB
+    </footer>
+  </div>
+</body>
+</html>

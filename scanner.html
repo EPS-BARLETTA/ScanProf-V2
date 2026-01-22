@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Scanner un QR Code</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .scan-wrap {
+      min-height: 100vh;
+      display: grid;
+      grid-template-rows: 1fr auto;
+    }
+    .scan-main {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 14px;
+      padding: 20px 12px 0;
+    }
+    h1 { margin: 8px 0 4px; }
+    #reader {
+      width: 100%;
+      max-width: 420px;
+      margin: 10px auto 0;
+      padding: 10px;
+      border: 2px dashed #1e90ff;
+      border-radius: 10px;
+      background: #fff;
+    }
+    .button-bar {
+      display: flex;
+      gap: 10px;
+      margin-top: 8px;
+    }
+    .button {
+      display: inline-block;
+      padding: 10px 14px;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: 600;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      text-align: center;
+    }
+    .green { background:#28a745; color:#fff; }
+    .blue  { background:#1e90ff; color:#fff; }
+    footer {
+      background:#1e90ff;
+      color:#fff;
+      text-align:center;
+      padding:10px 12px;
+    }
+    .scan-message { min-height: 1.4em; font-weight: 600; }
+  </style>
+  <script src="https://unpkg.com/html5-qrcode" defer></script>
+  <script src="app-store.js" defer></script>
+  <script src="scanner.js" defer></script>
+</head>
+<body>
+  <div class="scan-wrap">
+    <main class="scan-main">
+      <h1>📷 Scanner un QR Code</h1>
+      <div id="reader"></div>
+      <p id="scan-result" class="scan-message"></p>
+      <div class="button-bar">
+        <a href="index.html" class="button green">🏠 Accueil</a>
+        <a href="participants.html" class="button blue">👥 Voir les participants</a>
+      </div>
+    </main>
+
+    <footer>
+      ScanProf - Équipe EPS Lycée Vauban - LUXEMBOURG - JB
+    </footer>
+  </div>
+</body>
+</html>

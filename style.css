@@ -1,0 +1,115 @@
+body {
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: #f3f3f3;
+  color: #333;
+}
+
+header {
+  background-color: #1e90ff;
+  color: white;
+  padding: 1em;
+  text-align: center;
+}
+
+main {
+  padding: 2em;
+  max-width: 900px;
+  margin: auto;
+}
+
+h1, h2 {
+  text-align: center;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1em;
+}
+
+table th, table td {
+  border: 1px solid #ccc;
+  padding: 0.5em;
+  text-align: center;
+}
+
+table tr:nth-child(even) {
+  background-color: #eaf6ff;
+}
+
+table tr:nth-child(odd) {
+  background-color: #ffffff;
+}
+
+footer {
+  background-color: #1e90ff;
+  color: white;
+  text-align: center;
+  padding: 1em;
+  position: relative;
+  margin-top: 2em;
+}
+
+button, select {
+  margin: 0.5em;
+  padding: 0.5em 1em;
+  font-size: 1em;
+  cursor: pointer;
+  border: none;
+  border-radius: 5px;
+}
+
+.btn-accueil {
+  background-color: #28a745; /* vert */
+  color: white;
+}
+
+.btn-tri {
+  background-color: #007bff; /* bleu */
+  color: white;
+}
+
+.btn-reset {
+  background-color: #dc3545; /* rouge */
+  color: white;
+}
+
+.btn-zenos {
+  background-color: #ffc107; /* jaune */
+  color: black;
+}
+
+.btn-aide {
+  background-color: #b085f5; /* violet clair */
+  color: white;
+}
+
+.btn-mail {
+  background-color: #6c757d; /* gris */
+  color: white;
+}
+
+textarea {
+  width: 100%;
+  height: 100px;
+  margin-top: 1em;
+}
+
+#reader {
+  width: 100%;
+  max-width: 400px;
+  margin: auto;
+  padding: 1em;
+  border: 2px dashed #1e90ff;
+  border-radius: 10px;
+  background-color: white;
+}
+
+.group-table {
+  margin: 2em auto;
+  border: 2px solid #007bff;
+  border-radius: 10px;
+  overflow: hidden;
+}

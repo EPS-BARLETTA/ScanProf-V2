@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Aide - ScanProf</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    .wrap { min-height: 100vh; display: grid; grid-template-rows: 1fr auto; }
+    main { max-width: 900px; margin: 0 auto; padding: 16px; }
+    header { background: #1e90ff; color: #fff; padding: 14px; text-align: center; }
+    section { background: #fff; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.06); padding: 14px; margin: 12px 0; }
+    h1, h2 { margin: 8px 0; }
+    ul { margin: 8px 0 0 18px; }
+    ol { margin: 8px 0 0 18px; }
+    .actions { display:flex; gap:10px; justify-content:center; margin-top: 10px; }
+    .button { padding: 10px 14px; border-radius: 8px; text-decoration: none; font-weight: 600; border: none; cursor: pointer; }
+    .green { background:#28a745; color:#fff; }
+    footer { background:#1e90ff; color:#fff; text-align:center; padding:10px 12px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1>❓ Aide - Utilisation de ScanProf</h1>
+    </header>
+
+    <main>
+      <section>
+        <h2>📌 Fonctionnement général</h2>
+        <p><strong>ScanProf</strong> est une application de collecte et de tri : elle récupère, via des QR codes, des informations d’élèves à la fin des séances (issues d’applications comme <em>RunStats</em> et d’autres à venir). L’objectif est de faciliter le suivi par l’enseignant (notes, préparation des séances suivantes) et la constitution de groupes pour des projets comme le <strong>ZENOS Tour</strong>.</p>
+        <p><em>RunStats</em> n’est qu’une application parmi une <strong>série d’outils EPS</strong> qui fonctionneront sur le même principe : générer un QR en fin de séance → scanner avec ScanProf → trier, exporter, imprimer, partager.</p>
+      </section>
+
+      <section>
+        <h2>🏠 Accueil</h2>
+        <ul>
+          <li><strong>Scanner</strong> : lance le lecteur QR pour ajouter des élèves.</li>
+          <li><strong>Participants enregistrés</strong> : affiche le tableau des élèves scannés (tri, <em>filtre texte</em>, export/import CSV, impression/PDF).</li>
+          <li><strong>Groupes ZENOS Tour</strong> : génère automatiquement des groupes de 4 hétérogènes.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>📷 Scanner un QR Code</h2>
+        <ul>
+          <li>Placez un QR code (format JSON) devant la caméra.</li>
+          <li>Les QR peuvent contenir <strong>1 ou 2 élèves</strong>. Les doublons sont évités (nom+prénom+classe).</li>
+          <li>Vous pouvez enchaîner plusieurs scans.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>👥 Participants enregistrés</h2>
+        <ul>
+          <li><strong>Tri dynamique</strong> : triez par n’importe quelle colonne.</li>
+          <li><strong>Filtre texte</strong> : tapez un mot-clé (ex. “Lola”, “5A”, “F”) pour ne garder que les lignes correspondantes.</li>
+          <li><strong>Exporter CSV</strong> / <strong>Réimporter CSV</strong> : pour sauvegarder et recharger une liste.</li>
+          <li><strong>Imprimer / PDF</strong> : ouvre l’aperçu d’impression (voir partage ci-dessous).</li>
+          <li><strong>Réinitialiser</strong> : efface tous les participants (confirmation demandée).</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>📤 Partager le PDF depuis iPad/iPhone</h2>
+        <p>Pour envoyer la liste des participants en <strong>PDF</strong> par mail (ou l’enregistrer dans Fichiers) :</p>
+        <ol>
+          <li>Dans <em>Participants enregistrés</em>, touchez <strong>🖨️ Imprimer / PDF</strong>.</li>
+          <li>Dans la fenêtre d’aperçu iOS, touchez l’icône de <strong>partage</strong> en haut à droite.</li>
+          <li>Choisissez <strong>Mail</strong>, <strong>Messages</strong> ou <strong>Enregistrer dans Fichiers</strong>.</li>
+        </ol>
+        <p>Astuce : vous pouvez aussi <em>AirDrop</em> le PDF vers un Mac.</p>
+      </section>
+
+      <section>
+        <h2>🧬 Groupes ZENOS Tour</h2>
+        <p>Création de groupes de 4 élèves équilibrés selon la VMA (un haut, un bas, deux intermédiaires). Les classes sont <strong>normalisées automatiquement</strong> (ex. “5ème A”, “5A”, “5 a”… → <strong>5A</strong>) afin d’éviter les erreurs de saisie.</p>
+        <ul>
+          <li>Affichage en <strong>un seul tableau</strong> avec groupes alternés <em>(bleu/blanc)</em>.</li>
+          <li><strong>Élèves à attribuer manuellement</strong> listés en bas (couleur différente).</li>
+          <li>Actions : <strong>CSV</strong>, <strong>Imprimer</strong>, <strong>PDF</strong>, <strong>Mail</strong>.</li>
+        </ul>
+      </section>
+
+      <div class="actions">
+        <a href="index.html" class="button green">🏠 Retour à l'accueil</a>
+      </div>
+    </main>
+
+    <footer>
+      ScanProf - Équipe EPS Lycée Vauban - LUXEMBOURG - JB
+    </footer>
+  </div>
+</body>
+</html>
