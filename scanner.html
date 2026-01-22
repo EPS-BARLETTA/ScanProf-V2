@@ -10,6 +10,8 @@
       min-height: 100vh;
       display: grid;
       grid-template-rows: 1fr auto;
+      background: var(--sp-bg);
+      color: var(--sp-text);
     }
     .scan-main {
       display: flex;
@@ -25,9 +27,9 @@
       max-width: 420px;
       margin: 10px auto 0;
       padding: 10px;
-      border: 2px dashed #1e90ff;
+      border: 2px dashed var(--sp-reader-border);
       border-radius: 10px;
-      background: #fff;
+      background: var(--sp-surface);
     }
     .button-bar {
       display: flex;
@@ -40,19 +42,20 @@
       border-radius: 8px;
       text-decoration: none;
       font-weight: 600;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      box-shadow: var(--sp-card-shadow);
       text-align: center;
     }
-    .green { background:#28a745; color:#fff; }
-    .blue  { background:#1e90ff; color:#fff; }
+    .green { background:var(--sp-accent-green); color:#fff; }
+    .blue  { background:var(--sp-primary); color:#fff; }
     footer {
-      background:#1e90ff;
+      background:var(--sp-primary);
       color:#fff;
       text-align:center;
       padding:10px 12px;
     }
     .scan-message { min-height: 1.4em; font-weight: 600; }
   </style>
+  <script src="theme.js" defer></script>
   <script src="https://unpkg.com/html5-qrcode" defer></script>
   <script src="app-store.js" defer></script>
   <script src="scanner.js" defer></script>

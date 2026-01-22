@@ -11,6 +11,8 @@
       min-height: 100vh;
       display: flex;
       flex-direction: column;
+      background: var(--sp-bg);
+      color: var(--sp-text);
     }
     .accueil-main {
       flex: 1;
@@ -38,21 +40,23 @@
       border-radius: 10px;
       text-decoration: none;
       font-weight: 600;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      box-shadow: var(--sp-card-shadow);
       text-align: center;
     }
-    .button.blue   { background:#1e90ff; color:#fff; }
-    .button.green  { background:#28a745; color:#fff; }
-    .button.yellow { background:#ffcc00; color:#222; }
+    .button.blue   { background:var(--sp-primary); color:#fff; }
+    .button.green  { background:var(--sp-accent-green); color:#fff; }
+    .button.yellow { background:var(--sp-accent-yellow); color:#222; }
     .button.orange { background:#ff8c5c; color:#fff; }
-    .button.purple { background:#8e44ad; color:#fff; }
+    .button.purple { background:var(--sp-accent-purple); color:#fff; }
     footer {
-      background:#1e90ff;
+      background:var(--sp-primary);
       color:#fff;
       text-align:center;
       padding:10px 12px;
     }
+    html[data-theme="dark"] .button.orange { background:#ff9f5c; }
   </style>
+  <script src="theme.js" defer></script>
 </head>
 <body>
   <div class="accueil-wrap">

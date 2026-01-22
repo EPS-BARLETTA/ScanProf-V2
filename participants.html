@@ -6,63 +6,36 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="style.css">
   <style>
-    .wrap { min-height: 100vh; display: grid; grid-template-rows: 1fr auto; }
+    .wrap { min-height: 100vh; display: grid; grid-template-rows: 1fr auto; background: var(--sp-bg); }
     .main { max-width: 1100px; margin: 0 auto; padding: 16px; }
     .actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: center; margin: 6px 0 10px; }
-    .button { padding: 10px 14px; border-radius: 8px; text-decoration: none; font-weight: 600; border: none; cursor: pointer; }
-    .blue { background:#1e90ff; color:#fff; }
-    .red { background:#dc3545; color:#fff; }
-    .green { background:#28a745; color:#fff; }
-    .yellow { background:#ffcc00; color:#222; }
-    .purple { background:#8e44ad; color:#fff; }
-    .teal { background:#1abc9c; color:#fff; }
-    .orange { background:#ffe8cc; color:#222; }
+    .button { padding: 10px 14px; border-radius: 8px; text-decoration: none; font-weight: 600; border: 1px solid var(--sp-border); cursor: pointer; background: var(--sp-surface); color: var(--sp-text); box-shadow: var(--sp-card-shadow); transition: filter .2s; }
+    .button:hover { filter: brightness(1.05); }
+    .blue { background: var(--sp-primary); color:#fff; border-color: transparent; }
+    .red { background: var(--sp-accent-red); color:#fff; border-color: transparent; }
+    .green { background: var(--sp-accent-green); color:#fff; border-color: transparent; }
+    .yellow { background: var(--sp-accent-yellow); color:#222; border-color: transparent; }
+    .purple { background: var(--sp-accent-purple); color:#fff; border-color: transparent; }
+    .teal { background: var(--sp-accent-teal); color:#fff; border-color: transparent; }
+    .orange { background: var(--sp-accent-orange); color:#222; border-color: transparent; }
 
-    .table-wrapper { background:#fff; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.06); padding: 12px; overflow-x: auto; }
+    .table-wrapper { background: var(--sp-surface); border-radius: 10px; box-shadow: var(--sp-card-shadow); padding: 12px; overflow-x: auto; }
     table { width:100%; border-collapse: collapse; min-width: 720px; }
-    th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
-    thead th { background:#f0f7ff; }
-    tbody tr.pair { background:#ffffff; }
-    tbody tr.impair { background:#eaf6ff; }
-    footer { background:#1e90ff; color:#fff; text-align:center; padding:10px 12px; }
-    input[type="text"], input[type="number"] { padding: 8px 10px; border:1px solid #ccc; border-radius: 6px; min-width: 220px; }
-
-    /* ==== Modale ajout manuel ==== */
-    .sp-modal{position:fixed;inset:0;background:rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;z-index:9999}
-    .sp-modal.sp-hidden{display:none !important;}
-    .sp-card{background:#fff;width:min(92vw,720px);border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.12);padding:16px}
-    .sp-card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
-    .sp-card-header h3{margin:0;font-size:1.1rem}
-    .sp-close{font-size:1.4rem;line-height:1;border:none;background:transparent;cursor:pointer;padding:4px 8px}
-    .sp-form .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-    .sp-form label{display:grid;gap:6px;font-size:.95rem}
-    .sp-form input,.sp-form select{padding:.55rem .6rem;border:1px solid #e5e7eb;border-radius:8px}
-    .sp-req{color:#c00}
-    .sp-actions{display:flex;gap:8px;margin-top:10px}
-    .sp-btn{cursor:pointer}
-    .sp-btn-primary{background:#1e90ff;border:1px solid #1e90ff;color:#fff;border-radius:10px;padding:.6rem .9rem}
-    .sp-btn-primary:hover{filter:brightness(.95)}
-    .sp-btn-outline{border:1px solid #e5e7eb;background:#fff;border-radius:10px;padding:.45rem .7rem}
-    .sp-btn-ghost{background:transparent;border:1px solid transparent;padding:.55rem .9rem}
-    .sp-hint{font-size:.85rem;color:#666}
-
-    /* Sections détectées / personnalisées */
-    fieldset.sp-section{margin-top:12px;border:1px dashed #e5e7eb;border-radius:10px;padding:10px}
-    fieldset.sp-section legend{padding:0 6px;color:#444;font-weight:600}
-    .sp-dyn-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-    .sp-custom-row{display:grid;grid-template-columns:1fr 1fr auto;gap:8px;margin:.25rem 0}
+    th, td { border: 1px solid var(--sp-border); padding: 8px; text-align: center; }
+    thead th { background: var(--sp-sticky-bg); }
+    tbody tr.pair { background: var(--sp-table-even); }
+    tbody tr.impair { background: var(--sp-table-odd); }
+    footer { background: var(--sp-primary); color:#fff; text-align:center; padding:10px 12px; }
+    input[type="text"], input[type="number"] { padding: 8px 10px; border:1px solid var(--sp-border); border-radius: 6px; min-width: 220px; background: var(--sp-surface); color: var(--sp-text); }
 
     /* ---- Post-it mémo (discret) ---- */
     .memo-suppr{
       display:inline-block; margin-top:8px; padding:6px 10px;
-      font-size:.95rem; border:1px solid #f3e08a; background:#fff8c5; border-radius:8px;
-    }
-    @media (prefers-color-scheme: dark){
-      .memo-suppr{ background:#2a2a1a; border-color:#5a5400; }
+      font-size:.95rem; border:1px solid var(--sp-memo-border); background:var(--sp-memo-bg); border-radius:8px;
     }
   </style>
 
-  <!-- Ton script existant : on ne le touche pas -->
+  <script src="theme.js" defer></script>
   <script src="participants.js" defer></script>
 </head>
 <body>
@@ -83,6 +56,7 @@
         <label for="filtre-txt">Filtrer (texte) :</label>
         <input id="filtre-txt" type="text" placeholder="ex. Lola, 5A, F..." oninput="filtrerTexte()">
         <button class="button" onclick="filtrerTexte()">🔎 Rechercher</button>
+        <button id="edit-mode-btn" class="button purple" type="button" onclick="toggleEditMode()">✏️ Mode édition</button>
       </div>
 
       <!-- Exports / impression -->
@@ -109,11 +83,13 @@
       <!-- Post-it : info appui long -->
       <div class="actions" style="margin-top:8px;">
         <div class="memo-suppr" role="note">📝 Retirer une ligne : appui long sur la ligne</div>
+        <div class="memo-suppr" role="note">✏️ Mode édition actif : toucher un champ pour écrire (bouton violet pour verrouiller)</div>
       </div>
 
       <!-- Navigation -->
       <div class="actions" style="margin-top:12px;">
-        <button id="spAddBtn" type="button" class="button orange">➕ Ajouter un participant</button>
+        <button type="button" class="button blue" onclick="ajouterColonneManuelle()">➕ Ajouter une colonne</button>
+        <button type="button" class="button orange" onclick="ajouterParticipantInline()">➕ Ajouter un élève</button>
         <a href="applications.html" class="button teal">🧩 Explorateur d'apps</a>
         <a href="groupe-zenos.html" class="button yellow">🧬 Groupes ZENOS Tour</a>
         <a href="index.html" class="button green">🏠 Accueil</a>
@@ -125,300 +101,6 @@
       ScanProf - Équipe EPS Lycée Vauban - LUXEMBOURG - JB
     </footer>
   </div>
-
-  <!-- Modale d’ajout manuel (fermée par défaut) -->
-  <div id="spManualModal" class="sp-modal sp-hidden" aria-hidden="true">
-    <div class="sp-card" role="dialog" aria-modal="true" aria-labelledby="spManualTitle">
-      <div class="sp-card-header">
-        <h3 id="spManualTitle">Ajouter un participant</h3>
-        <button type="button" id="spClose" class="sp-close" aria-label="Fermer">×</button>
-      </div>
-
-      <form id="spForm" class="sp-form">
-        <!-- Bloc de base (toujours affiché) -->
-        <div class="row">
-          <label>Nom <span class="sp-req">*</span>
-            <input name="nom" autocomplete="family-name" required>
-          </label>
-          <label>Prénom <span class="sp-req">*</span>
-            <input name="prenom" autocomplete="given-name" required>
-          </label>
-        </div>
-        <div class="row">
-          <label>Classe
-            <input name="classe" placeholder="ex. 2E">
-          </label>
-          <label>Sexe
-            <select name="sexe">
-              <option value="">—</option>
-              <option value="F">F</option>
-              <option value="M">M</option>
-              <option value="Autre">Autre</option>
-            </select>
-          </label>
-        </div>
-
-        <!-- Champs conditionnels RunStats (affichés seulement si détectés) -->
-        <div class="row">
-          <label class="sp-field" data-key="distance">Distance (m)
-            <input name="distance" inputmode="decimal" placeholder="ex. 2400">
-          </label>
-          <label class="sp-field" data-key="vitesse">Vitesse (km/h)
-            <input name="vitesse" inputmode="decimal" placeholder="ex. 12.5">
-          </label>
-        </div>
-        <div class="row">
-          <label class="sp-field" data-key="vma">VMA
-            <input name="vma" inputmode="decimal" placeholder="ex. 13.2">
-          </label>
-          <label>Conflit doublon
-            <select name="doublon">
-              <option value="update">Mettre à jour si déjà présent</option>
-              <option value="duplicate">Dupliquer quand même</option>
-            </select>
-          </label>
-        </div>
-
-        <!-- Champs détectés automatiquement (ClimbTrack, autres apps…) -->
-        <fieldset id="spDetectedSection" class="sp-section" style="display:none">
-          <legend>Champs détectés</legend>
-          <div id="spDetectedZone" class="sp-dyn-grid"></div>
-        </fieldset>
-
-        <!-- Champs personnalisés libres -->
-        <fieldset class="sp-section">
-          <legend>Champs personnalisés</legend>
-          <div id="spCustomZone"></div>
-          <button type="button" id="spAddCustom" class="sp-btn sp-btn-outline">+ Ajouter un champ</button>
-        </fieldset>
-
-        <div class="sp-actions">
-          <button type="submit" class="sp-btn sp-btn-primary">Enregistrer</button>
-          <button type="button" id="spCancel" class="sp-btn sp-btn-ghost">Annuler</button>
-        </div>
-        <p class="sp-hint">Sauvegarde dans <code>localStorage.eleves</code>. Le tableau se met à jour automatiquement.</p>
-      </form>
-    </div>
-  </div>
-
-  <!-- Script autonome (ne touche pas participants.js) -->
-  <script>
-  (function(){
-    const $  = (s, r=document) => r.querySelector(s);
-    const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
-
-    const openBtn   = $('#spAddBtn');
-    const modal     = $('#spManualModal');
-    const form      = $('#spForm');
-    const custom    = $('#spCustomZone');
-    const detected  = $('#spDetectedZone');
-    const detSection= $('#spDetectedSection');
-
-    // --- Utils ---
-    const baseKeys   = new Set(['nom','prenom','classe','sexe','distance','vitesse','vma']);
-    const reserved   = new Set(['doublon']);
-    const labelMap   = {
-      cotation: 'Cotation',
-      bloc: 'Bloc', blocs:'Blocs',
-      voies: 'Voies', nbvoies:'Nombre de voies',
-      points:'Points', performance:'Performance',
-      temps:'Temps (s)', temps_sec:'Temps (s)',
-      vitesse_ms:'Vitesse (m/s)', vitesse_kmh:'Vitesse (km/h)'
-    };
-    const numberish  = new Set(['distance','vitesse','vma','points','temps','temps_sec','vitesse_ms','vitesse_kmh','bloc','blocs','voies','nbvoies']);
-
-    const slug = s => String(s||'')
-      .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
-      .trim().toLowerCase();
-
-    function parseNumber(val){
-      if(val == null) return undefined;
-      const n = String(val).replace(',', '.').trim();
-      if(n === '') return undefined;
-      const f = parseFloat(n);
-      return isNaN(f) ? undefined : f;
-    }
-    function norm(s){
-      return String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().toUpperCase();
-    }
-    function loadEleves(){
-      try {
-        const raw = localStorage.getItem('eleves');
-        const arr = JSON.parse(raw);
-        return Array.isArray(arr) ? arr : [];
-      } catch { return []; }
-    }
-    function saveEleves(list){
-      localStorage.setItem('eleves', JSON.stringify(list));
-    }
-    function keyFor(eleve){
-      return [eleve.nom, eleve.prenom, eleve.classe].map(norm).join('|');
-    }
-
-    function detectColumns(){
-      const cols = new Set();
-
-      // 1) colonnes du tableau
-      $$('#table-head th').forEach(th => {
-        const k = slug(th.textContent);
-        if(k) cols.add(k);
-      });
-
-      // 2) union des clés dans localStorage.eleves
-      const data = loadEleves();
-      data.forEach(obj => {
-        Object.keys(obj||{}).forEach(k => {
-          const nk = slug(k);
-          if(nk && !reserved.has(nk)) cols.add(nk);
-        });
-      });
-
-      return cols;
-    }
-
-    function toggleConditionalFields(cols){
-      // Afficher Distance/Vitesse/VMA seulement si présents
-      ['distance','vitesse','vma'].forEach(k=>{
-        const el = document.querySelector('.sp-field[data-key="'+k+'"]');
-        if(el){
-          el.style.display = cols.has(k) ? 'block' : 'none';
-        }
-      });
-    }
-
-    function buildDetectedFields(cols){
-      detected.innerHTML = '';
-      // Clés candidates = colonnes/données - baseKeys - (nom/prenom/classe/sexe)
-      const candidates = Array.from(cols).filter(k =>
-        !baseKeys.has(k) && !['nom','prenom','classe','sexe'].includes(k)
-      );
-
-      if(candidates.length === 0){
-        detSection.style.display = 'none';
-        return;
-      }
-
-      candidates.forEach(k=>{
-        const label = labelMap[k] || (k.charAt(0).toUpperCase()+k.slice(1));
-        const isNum = numberish.has(k);
-        const wrap = document.createElement('label');
-        wrap.innerHTML = `${label}
-          <input name="${k}" ${isNum ? 'inputmode="decimal"' : ''} placeholder="">
-        `;
-        detected.appendChild(wrap);
-      });
-
-      detSection.style.display = 'block';
-    }
-
-    function openModal(){
-      const cols = detectColumns();
-      toggleConditionalFields(cols);
-      buildDetectedFields(cols);
-
-      modal.classList.remove('sp-hidden');
-      modal.setAttribute('aria-hidden','false');
-      document.addEventListener('keydown', escClose);
-      $('input[name="nom"]')?.focus();
-    }
-    function closeModal(){
-      modal.classList.add('sp-hidden');
-      modal.setAttribute('aria-hidden','true');
-      document.removeEventListener('keydown', escClose);
-      form.reset();
-      custom.innerHTML = '';
-      detected.innerHTML = '';
-      detSection.style.display = 'none';
-    }
-    function escClose(e){ if(e.key === 'Escape') closeModal(); }
-
-    openBtn?.addEventListener('click', openModal);
-    $('#spClose')?.addEventListener('click', closeModal);
-    $('#spCancel')?.addEventListener('click', closeModal);
-    modal?.addEventListener('click', (e)=>{ if(e.target === modal) closeModal(); });
-
-    // Champs perso
-    $('#spAddCustom')?.addEventListener('click', () => {
-      const row = document.createElement('div');
-      row.className = 'sp-custom-row';
-      row.innerHTML = `
-        <input placeholder="Clé (ex. dossard)" class="sp-k">
-        <input placeholder="Valeur" class="sp-v">
-        <button type="button" class="sp-btn sp-btn-outline sp-rm">✕</button>
-      `;
-      row.querySelector('.sp-rm').addEventListener('click', ()=> row.remove());
-      custom.appendChild(row);
-    });
-
-    // Soumission
-    form?.addEventListener('submit', (e) => {
-      e.preventDefault();
-      const fd = new FormData(form);
-
-      const nom = (fd.get('nom')||'').toString().trim();
-      const prenom = (fd.get('prenom')||'').toString().trim();
-      if(!nom || !prenom){
-        alert('Nom et Prénom sont requis.');
-        return;
-      }
-
-      const classe = (fd.get('classe')||'').toString().trim();
-      const sexe = (fd.get('sexe')||'').toString().trim();
-
-      // Objet élève (clés canoniques minuscules)
-      const eleve = { nom, prenom };
-      if(classe) eleve.classe = classe;
-      if(sexe) eleve.sexe = sexe;
-
-      // Champs conditionnels RunStats
-      const distance = parseNumber(fd.get('distance'));
-      const vitesse  = parseNumber(fd.get('vitesse'));
-      const vma      = parseNumber(fd.get('vma'));
-      if(distance !== undefined) eleve.distance = distance;
-      if(vitesse  !== undefined) eleve.vitesse  = vitesse;
-      if(vma      !== undefined) eleve.vma      = vma;
-
-      // Champs détectés (normalisés en minuscules)
-      $$('#spDetectedZone input').forEach(inp=>{
-        const key = slug(inp.name);
-        if(!key || reserved.has(key)) return;
-        const raw = inp.value;
-        if(raw == null || String(raw).trim() === '') return;
-
-        const val = numberish.has(key) ? parseNumber(raw) : String(raw).trim();
-        if(val !== undefined && val !== ''){
-          eleve[key] = val;
-        }
-      });
-
-      // Champs personnalisés libres
-      $$('.sp-custom-row', custom).forEach(row => {
-        const kRaw = row.querySelector('.sp-k')?.value?.trim();
-        const vRaw = row.querySelector('.sp-v')?.value?.trim();
-        const k = slug(kRaw);
-        if(k && vRaw !== undefined && vRaw !== ''){ eleve[k] = vRaw; }
-      });
-
-      const doublon  = (fd.get('doublon')||'update').toString();
-
-      const list = loadEleves();
-      const kKey = [eleve.nom, eleve.prenom, eleve.classe].map(norm).join('|');
-      const idx = list.findIndex(x => [x?.nom, x?.prenom, x?.classe].map(norm).join('|') === kKey);
-
-      if(idx >= 0 && doublon === 'update'){
-        list[idx] = { ...list[idx], ...eleve };
-      } else {
-        list.push(eleve);
-      }
-
-      saveEleves(list);
-      closeModal();
-      location.reload(); // rerender par participants.js
-    });
-
-    function escClose(e){ if(e.key === 'Escape') closeModal(); }
-  })();
-  </script>
 
   <!-- Migration unique : convertit les clés MAJ -> minuscules (base fields) -->
   <script>

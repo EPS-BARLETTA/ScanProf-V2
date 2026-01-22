@@ -38,6 +38,15 @@
       renderList();
       renderDetail();
     });
+    dom.list.addEventListener("keydown", (event) => {
+      if (event.key !== "Enter" && event.key !== " ") return;
+      const card = event.target.closest("[data-app]");
+      if (!card) return;
+      event.preventDefault();
+      state.selectedId = card.getAttribute("data-app");
+      renderList();
+      renderDetail();
+    });
     dom.detail.addEventListener("click", handleDetailAction);
   }
 
@@ -141,13 +150,14 @@
           .map((text) => `<span>${escapeHtml(text)}</span>`)
           .join("");
         return `
-        <article class="app-card ${selected}" data-app="${app.id}">
+        <article class="app-card ${selected}" data-app="${app.id}" role="button" tabindex="0" aria-pressed="${selected ? "true" : "false"}">
           <div class="app-title">
             <span>${escapeHtml(app.name || "Application")}</span>
             <small>${escapeHtml(app.type || "app")}</small>
           </div>
           <div class="app-meta">${meta}</div>
           ${tags ? `<div class="app-tags">${tags}</div>` : ""}
+          <div class="app-open">📂 Ouvrir l'archive</div>
         </article>`;
       })
       .join("");
@@ -313,9 +323,14 @@
   function showToast(message, success = true) {
     if (!dom.toast) return;
     dom.toast.textContent = message;
-    dom.toast.style.background = success ? "#1e90ff" : "#c00040";
+    dom.toast.style.background = success ? cssVar("--sp-primary", "#1e90ff") : "#c00040";
     dom.toast.classList.add("visible");
     clearTimeout(showToast._timer);
     showToast._timer = setTimeout(() => dom.toast.classList.remove("visible"), 2000);
+  }
+
+  function cssVar(name, fallback) {
+    const value = getComputedStyle(document.documentElement).getPropertyValue(name);
+    return value && value.trim() ? value.trim() : fallback;
   }
 })();

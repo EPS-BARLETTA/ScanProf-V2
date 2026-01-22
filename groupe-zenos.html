@@ -7,41 +7,42 @@
   <link rel="stylesheet" href="style.css">
 
   <style>
-    .wrap { min-height: 100vh; display: grid; grid-template-rows: 1fr auto; }
+    .wrap { min-height: 100vh; display: grid; grid-template-rows: 1fr auto; background: var(--sp-bg); color: var(--sp-text); }
     .main { max-width: 1100px; margin: 0 auto; padding: 16px; }
     .actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: center; margin: 8px 0 14px; }
 
-    .button { padding: 10px 14px; border-radius: 8px; text-decoration: none; font-weight: 600; border: none; cursor: pointer; }
-    .green { background:#28a745; color:#fff; }
-    .yellow { background:#ffcc00; color:#222; }
-    .purple { background:#8e44ad; color:#fff; }
-    .blue { background:#1e90ff; color:#fff; }
-    .grey { background:#6c757d; color:#fff; }
+    .button { padding: 10px 14px; border-radius: 8px; text-decoration: none; font-weight: 600; border: 1px solid transparent; cursor: pointer; box-shadow: var(--sp-card-shadow); background: var(--sp-surface); color: var(--sp-text); }
+    .green { background:var(--sp-accent-green); color:#fff; }
+    .yellow { background:var(--sp-accent-yellow); color:#222; }
+    .purple { background:var(--sp-accent-purple); color:#fff; }
+    .blue { background:var(--sp-primary); color:#fff; }
+    .grey { background:var(--sp-accent-gray); color:#fff; }
 
-    .panel { background:#fff; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.06); padding: 12px; }
+    .panel { background:var(--sp-surface); border-radius: 10px; box-shadow: var(--sp-card-shadow); padding: 12px; }
 
     table.zenos-unique { width: 100%; border-collapse: collapse; }
-    table.zenos-unique th, table.zenos-unique td { border: 1px solid #ddd; padding: 8px; text-align: center; }
-    table.zenos-unique thead th { background: #f0f7ff; }
+    table.zenos-unique th, table.zenos-unique td { border: 1px solid var(--sp-border); padding: 8px; text-align: center; }
+    table.zenos-unique thead th { background: var(--sp-sticky-bg); }
 
     /* Groupes alternés */
-    tr.group-blue td { background: #e6f2ff; }  /* bleu clair */
-    tr.group-white td { background: #ffffff; }  /* blanc */
+    tr.group-blue td { background: var(--sp-table-odd); }
+    tr.group-white td { background: var(--sp-table-even); }
     tr.separator-row td { height: 8px; border: none; background: transparent; }
 
     /* Restants */
-    .unassigned-title { margin: 14px 0 6px; font-weight: 700; color: #b33; }
+    .unassigned-title { margin: 14px 0 6px; font-weight: 700; color: var(--sp-accent-red); }
     table.unassigned { width: 100%; border-collapse: collapse; }
-    table.unassigned th, table.unassigned td { border: 1px solid #ddd; padding: 8px; text-align: center; }
-    table.unassigned thead th { background: #ffe9cc; }       /* entête orange très clair */
-    table.unassigned tbody td { background: #fff4e6; }       /* corps orange très clair */
+    table.unassigned th, table.unassigned td { border: 1px solid var(--sp-border); padding: 8px; text-align: center; }
+    table.unassigned thead th { background: var(--sp-accent-orange); }
+    table.unassigned tbody td { background: var(--sp-table-even); }
 
-    .note { color: #b33; font-style: italic; margin-top: 6px; }
+    .note { color: var(--sp-accent-red); font-style: italic; margin-top: 6px; }
 
     .topbar { display:flex; gap:10px; align-items:center; justify-content:center; flex-wrap:wrap; margin-bottom: 8px; }
-    .topbar select { padding: 8px 10px; border-radius: 8px; border: 1px solid #ccc; }
+    .topbar select { padding: 8px 10px; border-radius: 8px; border: 1px solid var(--sp-border); background: var(--sp-surface); color: var(--sp-text); }
   </style>
 
+  <script src="theme.js" defer></script>
   <script src="zenos.js" defer></script>
 </head>
 <body>

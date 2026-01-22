@@ -4,12 +4,115 @@ let _vueCourante = [];
 let _labels = {};
 let _types  = {};
 let _ordreAsc = true; // ⬅︎ nouvel état pour ↑/↓
+let _editMode = true;
 
 // Etat pour colonnes & menu
 let _lastCols = [];
 let _focusCols = new Set();    // colonnes “en focus” (hors nom/prenom). Vide = tout afficher
 let _colMenuEl = null;         // ref du menu des colonnes
 const LS_FOCUS_KEY = "participants_cols_focus_v1";
+const LS_ELEVES_KEY = "eleves";
+const LS_CUSTOM_COLS_KEY = "participants_custom_cols_v1";
+
+function generateRowId() {
+  return `sp_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
+}
+
+function loadCustomColumns() {
+  try {
+    const arr = JSON.parse(localStorage.getItem(LS_CUSTOM_COLS_KEY) || "[]");
+    return Array.isArray(arr) ? arr.filter((c) => c && c.key) : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveCustomColumns(cols) {
+  localStorage.setItem(LS_CUSTOM_COLS_KEY, JSON.stringify(cols || []));
+}
+
+function ensureCustomColumns(entries) {
+  const customs = loadCustomColumns();
+  if (!customs.length) return false;
+  let changed = false;
+  entries.forEach((entry) => {
+    if (!entry || typeof entry !== "object") return;
+    customs.forEach((col) => {
+      if (!col || !col.key) return;
+      if (!(col.key in entry)) {
+        entry[col.key] = "";
+        changed = true;
+      }
+      if (col.label) {
+        entry.__labels = entry.__labels || {};
+        if (!entry.__labels[col.key]) {
+          entry.__labels[col.key] = col.label;
+          changed = true;
+        }
+      }
+    });
+  });
+  return changed;
+}
+
+function normalizeEleves(entries) {
+  let changed = false;
+  entries.forEach((entry) => {
+    if (!entry || typeof entry !== "object") return;
+    if (!entry.__id) {
+      entry.__id = generateRowId();
+      changed = true;
+    }
+  });
+  if (ensureCustomColumns(entries)) changed = true;
+  return changed;
+}
+
+function loadEleves() {
+  let arr;
+  try {
+    arr = JSON.parse(localStorage.getItem(LS_ELEVES_KEY) || "[]");
+  } catch {
+    arr = [];
+  }
+  if (!Array.isArray(arr)) arr = [];
+  if (normalizeEleves(arr)) {
+    localStorage.setItem(LS_ELEVES_KEY, JSON.stringify(arr));
+  }
+  return arr;
+}
+
+function saveEleves(entries) {
+  const arr = Array.isArray(entries) ? entries : [];
+  normalizeEleves(arr);
+  localStorage.setItem(LS_ELEVES_KEY, JSON.stringify(arr));
+}
+
+function isInternalKey(key = "") {
+  return typeof key === "string" && key.startsWith("__");
+}
+
+function normalizeColumnKey(name = "") {
+  if (!name) return "";
+  let key = String(name).trim().toLowerCase();
+  if (typeof key.normalize === "function") key = key.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  key = key.replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "");
+  return key;
+}
+
+function createBlankEntry() {
+  return {
+    __id: generateRowId(),
+    nom: "",
+    prenom: "",
+    classe: "",
+    sexe: "",
+    distance: "",
+    vitesse: "",
+    vma: "",
+    temps_total: ""
+  };
+}
 
 // ------------ Helpers méta (labels/types) ------------
 function collectMeta(rows) {
@@ -43,7 +146,10 @@ function allColumnKeys(rows) {
   if (!rows || !rows.length) return [];
   const standard = ["nom","prenom","classe","sexe","distance","vitesse","vma","temps_total"];
   const set = new Set();
-  rows.forEach(r => Object.keys(r || {}).forEach(k => set.add(k)));
+  rows.forEach(r => Object.keys(r || {}).forEach(k => {
+    if (isInternalKey(k)) return;
+    set.add(k);
+  }));
   const others = Array.from(set)
     .filter(k => !standard.includes(k))
     .sort((a,b)=>a.localeCompare(b,'fr',{sensitivity:'base'}));
@@ -52,7 +158,10 @@ function allColumnKeys(rows) {
 function augmentData(rows) {
   if (!rows || !rows.length) return [];
   const splitKeys = new Set();
-  rows.forEach(r => Object.keys(r || {}).forEach(k => { if (isSplitKey(k)) splitKeys.add(k); }));
+  rows.forEach(r => Object.keys(r || {}).forEach(k => {
+    if (isInternalKey(k)) return;
+    if (isSplitKey(k)) splitKeys.add(k);
+  }));
   if (splitKeys.size === 0) return rows.map(r => ({...r}));
 
   let maxSplits = 0;
@@ -162,21 +271,23 @@ function ensureStickyStyles() {
   #participants-scroll {
     overflow-x: auto; overflow-y: visible;
     -webkit-overflow-scrolling: touch;
-    touch-action: pan-x pinch-zoom;  /* iPad : autorise le slide horizontal */
+    touch-action: auto;
     overscroll-behavior-x: contain;
     width: 100%;
+    cursor: grab;
   }
+  #participants-scroll.dragging { cursor: grabbing; }
 
   /* sticky : on n'impose pas de fond blanc -> héritage pair/impair conservé */
   th.sticky-cell, td.sticky-cell { position: sticky; z-index: 2; }
-  th.sticky-cell { z-index: 3; background: #f2f2f2; }
+  th.sticky-cell { z-index: 3; background: var(--sp-sticky-bg); }
 
   tr.pair  td.sticky-cell { background: inherit; }
   tr.impair td.sticky-cell { background: inherit; }
 
   th.sticky-cell::after, td.sticky-cell::after {
     content: ""; position: absolute; top: 0; right: -1px; width: 1px; height: 100%;
-    background: #e6e6e6;
+    background: var(--sp-sticky-sep);
   }
 
   .col-hidden { display: none !important; }
@@ -185,8 +296,8 @@ function ensureStickyStyles() {
   .colmenu {
     position: fixed;
     z-index: 2147483647; /* max */
-    border: 1px solid #ddd; border-radius: 10px; background: #fff;
-    box-shadow: 0 12px 28px rgba(0,0,0,.18);
+    border: 1px solid var(--sp-border); border-radius: 10px; background: var(--sp-surface);
+    box-shadow: var(--sp-card-shadow);
     padding: 8px 10px; min-width: 240px; max-height: 360px; overflow: auto;
     transform: translateZ(0); will-change: transform; pointer-events: auto;
   }
@@ -201,11 +312,67 @@ function ensureStickyStyles() {
 function ensureScrollWrap() {
   const table = document.getElementById("participants-table");
   if (!table) return;
-  if (table.parentElement && table.parentElement.id === "participants-scroll") return;
-  const wrap = document.createElement("div");
-  wrap.id = "participants-scroll";
-  table.parentElement.insertBefore(wrap, table);
-  wrap.appendChild(table);
+  let wrap = table.parentElement && table.parentElement.id === "participants-scroll"
+    ? table.parentElement
+    : null;
+  if (!wrap) {
+    wrap = document.createElement("div");
+    wrap.id = "participants-scroll";
+    table.parentElement.insertBefore(wrap, table);
+    wrap.appendChild(table);
+  }
+  enableHorizontalDrag(wrap);
+}
+
+function enableHorizontalDrag(scroller) {
+  if (!scroller || scroller.dataset.dragReady) return;
+  scroller.dataset.dragReady = "1";
+  let isDragging = false;
+  let startX = 0;
+  let scrollLeft = 0;
+  let activePointer = null;
+
+  scroller.addEventListener("pointerdown", (e) => {
+    const isMouse = e.pointerType === "mouse";
+    if (!isMouse) return;
+    if (e.button !== undefined && e.button !== 0) return;
+    isDragging = true;
+    startX = e.clientX;
+    scrollLeft = scroller.scrollLeft;
+    scroller.classList.add("dragging");
+    activePointer = e.pointerId;
+    try { scroller.setPointerCapture(e.pointerId); } catch {}
+  });
+
+  scroller.addEventListener("pointermove", (e) => {
+    if (!isDragging || activePointer !== e.pointerId) return;
+    e.preventDefault();
+    const dx = e.clientX - startX;
+    scroller.scrollLeft = scrollLeft - dx;
+  });
+
+  const stopDrag = (e) => {
+    if (!isDragging || (activePointer && e.pointerId && activePointer !== e.pointerId)) return;
+    isDragging = false;
+    scroller.classList.remove("dragging");
+    activePointer = null;
+    try { scroller.releasePointerCapture(e.pointerId); } catch {}
+  };
+
+  scroller.addEventListener("pointerup", stopDrag);
+  scroller.addEventListener("pointerleave", stopDrag);
+  scroller.addEventListener("pointercancel", stopDrag);
+
+  scroller.addEventListener("wheel", (event) => {
+    if (!event) return;
+    const canScroll = scroller.scrollWidth > scroller.clientWidth;
+    if (!canScroll) return;
+    const mostlyVertical = Math.abs(event.deltaY) > Math.abs(event.deltaX);
+    if (mostlyVertical && !event.shiftKey) {
+      event.preventDefault();
+      scroller.scrollLeft += event.deltaY;
+    }
+  }, { passive: false });
 }
 
 // ------------ Column picker (FOCUS) ------------
@@ -380,7 +547,7 @@ function applyStickyFirstTwo() {
 // ------------ Initialisation ------------
 function afficherParticipants() {
   ensureStickyStyles();
-  _elevesBrut = JSON.parse(localStorage.getItem("eleves") || "[]");
+  _elevesBrut = loadEleves();
   const meta = collectMeta(_elevesBrut);
   _labels = meta.labels;
   _types  = meta.types;
@@ -396,6 +563,20 @@ function afficherParticipants() {
   ensureColumnsButton();
 
   updateTable(_vueCourante);
+}
+
+function applyEditModeState() {
+  const btn = document.getElementById("edit-mode-btn");
+  if (btn) {
+    btn.textContent = _editMode ? "✅ Mode édition actif" : "✏️ Activer le mode édition";
+  }
+  document.documentElement.classList.toggle("sp-edit-mode", _editMode);
+}
+
+function toggleEditMode(force) {
+  if (typeof force === "boolean") _editMode = force;
+  else _editMode = !_editMode;
+  applyEditModeState();
 }
 
 // ------------ Rendu tableau ------------
@@ -415,18 +596,21 @@ function updateTable(data) {
   if (cols.some(k => /^T\d+$/i.test(k))) cols = cols.filter(k => !isSplitKey(k));
   _lastCols = cols.slice();
 
-  thead.innerHTML = `<tr>${cols.map(c => `<th data-col="${c.toLowerCase()}">${humanLabel(c)}</th>`).join("")}</tr>`;
+  thead.innerHTML = `<tr>${cols.map(c => `<th data-col="${c.toLowerCase()}" data-field="${c}">${humanLabel(c)}</th>`).join("")}</tr>`;
 
   tbody.innerHTML = data.map((row, i) => {
-    const tds = cols.map(k => `<td data-col="${k.toLowerCase()}">${formatCellValue(k, row[k])}</td>`).join("");
+    const tds = cols.map(k => `<td data-col="${k.toLowerCase()}" data-field="${k}">${formatCellValue(k, row[k])}</td>`).join("");
     const key = uniqKey(row);
-    return `<tr data-key="${key}" title="Astuce : appui long pour supprimer la ligne" class="${i % 2 === 0 ? 'pair' : 'impair'}">${tds}</tr>`;
+    const rowId = row.__id || "";
+    return `<tr data-id="${rowId}" data-key="${key}" title="Astuce : appui long pour supprimer la ligne" class="${i % 2 === 0 ? 'pair' : 'impair'}">${tds}</tr>`;
   }).join("");
 
   ensureScrollWrap();
   refreshColumnMenu();
   applyColumnVisibility();
   applyStickyFirstTwo();
+  enableInlineEditing();
+  applyEditModeState();
 
   window.addEventListener("resize", applyStickyFirstTwo, { passive: true });
   const scroller = document.getElementById("participants-scroll");
@@ -436,7 +620,7 @@ function updateTable(data) {
 // ------------ Filtre texte ------------
 function filtrerTexte() {
   const q = (document.getElementById("filtre-txt").value || "").toLowerCase().trim();
-  _elevesBrut = JSON.parse(localStorage.getItem("eleves") || "[]");
+  _elevesBrut = loadEleves();
 
   let filtered;
   if (!q) {
@@ -444,6 +628,7 @@ function filtrerTexte() {
   } else {
     filtered = _elevesBrut.filter(obj => {
       for (const k in obj) {
+        if (isInternalKey(k)) continue;
         const val = (obj[k] == null ? "" : String(obj[k])).toLowerCase();
         if (val.indexOf(q) !== -1) return true;
       }
@@ -462,10 +647,64 @@ function filtrerTexte() {
   updateTable(_vueCourante);
 }
 
+// ------------ Colonne manuelle ------------
+function ajouterColonneManuelle() {
+  const saisie = prompt("Nom de la nouvelle colonne ?");
+  if (saisie == null) return;
+  const label = saisie.trim();
+  const key = normalizeColumnKey(label);
+  if (!key) {
+    alert("Nom de colonne invalide.");
+    return;
+  }
+  const customs = loadCustomColumns();
+  if (customs.some(col => col.key === key)) {
+    alert("Cette colonne existe déjà.");
+    return;
+  }
+  customs.push({ key, label: label || key });
+  saveCustomColumns(customs);
+  const arr = loadEleves();
+  saveEleves(arr);
+  _elevesBrut = arr.slice();
+  const meta = collectMeta(_elevesBrut);
+  _labels = meta.labels;
+  _types = meta.types;
+  if (!_vueCourante.length) {
+    _vueCourante = augmentData(_elevesBrut);
+  } else {
+    _vueCourante.forEach(row => {
+      if (!row) return;
+      if (!(key in row)) row[key] = "";
+    });
+  }
+  updateTable(_vueCourante.length ? _vueCourante : augmentData(_elevesBrut));
+}
+
+function ajouterParticipantInline() {
+  const arr = loadEleves();
+  const blank = createBlankEntry();
+  arr.push(blank);
+  saveEleves(arr);
+  _elevesBrut = arr.slice();
+  _vueCourante = augmentData(_elevesBrut);
+  if (!_editMode) toggleEditMode(true);
+  updateTable(_vueCourante);
+  setTimeout(() => focusInlineCell(blank.__id, "nom"), 80);
+}
+
+function focusInlineCell(rowId, field) {
+  if (!rowId || !field) return;
+  const row = document.querySelector(`#participants-body tr[data-id="${rowId}"]`);
+  if (!row) return;
+  const td = row.querySelector(`td[data-field="${field}"]`);
+  if (td) startInlineEdit(td, { force: true });
+}
+
 // ------------ Tri dynamique (avec ↑/↓ et détection nombres/temps) ------------
 function trierParticipants() {
   const critere = document.getElementById("tri-select").value;
-  let data = _vueCourante.length ? _vueCourante.slice() : augmentData(JSON.parse(localStorage.getItem("eleves") || "[]"));
+  let data = _vueCourante.length ? _vueCourante.slice() : augmentData(loadEleves());
   if (data.length === 0) return;
 
   data.sort((a, b) => {
@@ -484,7 +723,7 @@ function trierParticipants() {
 
 // ------------ Export CSV (inchangé, avec T1..Tn) ------------
 function exporterCSV() {
-  const data = _vueCourante.length ? _vueCourante : augmentData(JSON.parse(localStorage.getItem("eleves") || "[]"));
+  const data = _vueCourante.length ? _vueCourante : augmentData(loadEleves());
   if (!data.length) return;
 
   let header = allColumnKeys(data);
@@ -520,7 +759,8 @@ function importerCSV(event) {
       return obj;
     });
 
-    localStorage.setItem("eleves", JSON.stringify(data));
+    normalizeEleves(data);
+    saveEleves(data);
     _elevesBrut = data.slice();
 
     const meta = collectMeta(_elevesBrut);
@@ -579,7 +819,7 @@ function imprimerTableau() {
 
 // ------------ Envoi par mail (inchangé) ------------
 function envoyerParMail() {
-  const data = _vueCourante.length ? _vueCourante : augmentData(JSON.parse(localStorage.getItem("eleves") || "[]"));
+  const data = _vueCourante.length ? _vueCourante : augmentData(loadEleves());
   if (!data.length) return;
 
   let header = allColumnKeys(data);
@@ -596,11 +836,134 @@ function envoyerParMail() {
 // ------------ Réinitialisation ------------
 function resetData() {
   if (confirm("Voulez-vous vraiment réinitialiser la liste ?")) {
-    localStorage.removeItem("eleves");
+    localStorage.removeItem(LS_ELEVES_KEY);
     _elevesBrut = [];
     _vueCourante = [];
     updateTable([]);
   }
+}
+
+// ------------ Edition inline ------------
+function enableInlineEditing() {
+  const tbody = document.getElementById("participants-body");
+  if (!tbody || tbody.dataset.inlineReady) return;
+  tbody.dataset.inlineReady = "1";
+  let suppressClick = false;
+  tbody.addEventListener("click", (event) => {
+    if (suppressClick) return;
+    const td = event.target.closest("td[data-field]");
+    if (!td) return;
+    if (td.classList.contains("is-editing")) return;
+    startInlineEdit(td);
+  });
+  tbody.addEventListener("dblclick", (event) => {
+    const td = event.target.closest("td[data-field]");
+    if (!td) return;
+    startInlineEdit(td);
+  });
+  let lastTapCell = null;
+  let lastTapTime = 0;
+  tbody.addEventListener("touchend", (event) => {
+    const td = event.target.closest("td[data-field]");
+    if (!td) return;
+    const now = Date.now();
+    if (lastTapCell === td && now - lastTapTime < 400) {
+      event.preventDefault();
+      startInlineEdit(td);
+      suppressClick = true;
+      setTimeout(() => { suppressClick = false; }, 350);
+    }
+    lastTapCell = td;
+    lastTapTime = now;
+  }, { passive: false });
+}
+
+function startInlineEdit(td, options = {}) {
+  const field = td.getAttribute("data-field");
+  if (!field || isInternalKey(field)) return;
+  const force = options.force === true;
+  if (!force && !_editMode) return;
+  if (td.classList.contains("is-editing")) return;
+  const tr = td.closest("tr[data-id]");
+  if (!tr) return;
+  const rowId = tr.getAttribute("data-id");
+  if (!rowId) return;
+  const rowData = (_vueCourante || []).find(row => row && row.__id === rowId)
+    || (_elevesBrut || []).find(row => row && row.__id === rowId);
+  const currentValue = valueToText(rowData ? rowData[field] : "");
+  const previousHtml = td.innerHTML;
+  td.classList.add("is-editing");
+  td.innerHTML = "";
+
+  const input = document.createElement("input");
+  input.type = "text";
+  input.value = currentValue;
+  input.className = "inline-edit-input";
+  input.autocomplete = "off";
+  input.spellcheck = false;
+  td.appendChild(input);
+  input.focus();
+  input.setSelectionRange(0, input.value.length);
+
+  let closed = false;
+  const cleanup = (restoreHtml = true) => {
+    if (closed) return;
+    closed = true;
+    td.classList.remove("is-editing");
+    if (restoreHtml) td.innerHTML = previousHtml;
+  };
+
+  const commit = (save) => {
+    if (!save) {
+      cleanup(true);
+      return;
+    }
+    const newValue = input.value;
+    if (newValue === currentValue) {
+      cleanup(true);
+      return;
+    }
+    closed = true;
+    const success = applyInlineEdit(rowId, field, newValue);
+    if (!success) cleanup(true);
+  };
+
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      commit(true);
+    } else if (e.key === "Escape") {
+      e.preventDefault();
+      cleanup(true);
+    }
+  });
+  input.addEventListener("blur", () => commit(true));
+}
+
+function valueToText(val) {
+  if (val == null) return "";
+  if (Array.isArray(val)) return val.join(", ");
+  if (typeof val === "object") return JSON.stringify(val);
+  return String(val);
+}
+
+function applyInlineEdit(rowId, field, rawValue) {
+  if (!rowId || !field) return false;
+  const arr = loadEleves();
+  const target = arr.find(entry => entry && entry.__id === rowId);
+  if (!target) return false;
+  const sanitized = rawValue == null ? "" : String(rawValue);
+  target[field] = sanitized;
+  saveEleves(arr);
+  _elevesBrut = arr.slice();
+  if (!_vueCourante.length) {
+    _vueCourante = augmentData(_elevesBrut);
+  } else {
+    const row = _vueCourante.find(entry => entry && entry.__id === rowId);
+    if (row) row[field] = sanitized;
+  }
+  updateTable(_vueCourante.length ? _vueCourante : augmentData(_elevesBrut));
+  return true;
 }
 
 // --- Suppression par appui long sur une ligne (sans modifier l'UI) ---
@@ -620,13 +983,11 @@ function resetData() {
   }
 
   function deleteByKey(key) {
-    const arr = JSON.parse(localStorage.getItem("eleves") || "[]");
+    const arr = loadEleves();
     const filtered = arr.filter(e => uniqKey(e) !== key);
-    localStorage.setItem("eleves", JSON.stringify(filtered));
-
-    _elevesBrut = _elevesBrut.filter(e => uniqKey(e) !== key);
-    _vueCourante = _vueCourante.filter(e => uniqKey(e) !== key);
-
+    saveEleves(filtered);
+    _elevesBrut = filtered.slice();
+    _vueCourante = augmentData(_elevesBrut);
     updateTable(_vueCourante);
   }
 
