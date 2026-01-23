@@ -104,15 +104,80 @@ footer {
   margin-top: 2em;
 }
 
-button, select {
+button,
+a.button,
+.button {
+  margin: 0.4em;
+  padding: 0.65em 1.2em;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: var(--sp-primary);
+  color: #fff;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  box-shadow: var(--sp-card-shadow);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+button:hover,
+.button:hover,
+a.button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+button:focus-visible,
+a.button:focus-visible,
+.button:focus-visible {
+  outline: 2px solid var(--sp-primary);
+  outline-offset: 2px;
+}
+select {
   margin: 0.5em;
   padding: 0.5em 1em;
   font-size: 1em;
-  cursor: pointer;
-  border: 1px solid transparent;
-  border-radius: 5px;
+  border-radius: 6px;
+  border: 1px solid var(--sp-border);
   background: var(--sp-surface);
   color: var(--sp-text);
+}
+
+.button.blue,
+.button.primary {
+  background: var(--sp-primary);
+  color: #fff;
+}
+.button.green {
+  background: var(--sp-accent-green);
+  color: #fff;
+}
+.button.yellow {
+  background: var(--sp-accent-yellow);
+  color: #222;
+}
+.button.orange {
+  background: var(--sp-accent-orange);
+  color: #222;
+}
+.button.purple {
+  background: var(--sp-accent-purple);
+  color: #fff;
+}
+.button.teal {
+  background: var(--sp-accent-teal);
+  color: #fff;
+}
+.button.red {
+  background: var(--sp-accent-red);
+  color: #fff;
+}
+.button.grey {
+  background: var(--sp-accent-gray);
+  color: #fff;
 }
 
 .btn-accueil {

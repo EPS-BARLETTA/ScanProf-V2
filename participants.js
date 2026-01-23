@@ -773,6 +773,175 @@ function focusInlineCell(rowId, field) {
   if (td) startInlineEdit(td, { force: true });
 }
 
+function getCurrentDataset() {
+  if (_vueCourante && _vueCourante.length) {
+    return _vueCourante.map(row => ({ ...row }));
+  }
+  return augmentData(loadEleves()).map(row => ({ ...row }));
+}
+
+function ouvrirArchivageClasse() {
+  const storeApi = window.ScanProfClassesStore;
+  if (!storeApi) {
+    alert("La bibliothèque des classes n'est pas disponible.");
+    return;
+  }
+  let classes = storeApi.loadClasses();
+  if (!Array.isArray(classes)) classes = [];
+  let selectedClassId = classes[0]?.id || null;
+  let selectedActivityId = selectedClassId ? (classes[0].activities[0]?.id || null) : null;
+  let creatingClass = false;
+  let creatingActivity = false;
+
+  const overlay = document.createElement("div");
+  overlay.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;z-index:9999;";
+  const card = document.createElement("div");
+  card.style.cssText = "background:var(--sp-surface,#fff);color:var(--sp-text,#111);padding:16px 18px;border-radius:12px;width:min(92vw,460px);max-height:90vh;overflow:auto;box-shadow:0 16px 34px rgba(0,0,0,.3);";
+  card.innerHTML = `
+    <h3 style="margin:0 0 10px;">Archiver dans mes classes</h3>
+    <div class="inline-form" style="display:flex;flex-direction:column;gap:10px;">
+      <label>Classe
+        <select id="archive-class"></select>
+      </label>
+      <button type="button" id="archive-add-class" style="padding:6px 10px;border-radius:8px;border:1px solid var(--sp-border,#ccc);background:var(--sp-surface,#fff);cursor:pointer;">+ Nouvelle classe</button>
+      <div id="archive-class-form" style="display:none;flex-direction:column;gap:8px;">
+        <input type="text" id="archive-class-name" placeholder="Nom de la classe">
+        <input type="color" id="archive-class-color" value="#1e90ff">
+      </div>
+
+      <label>Activité
+        <select id="archive-activity"></select>
+      </label>
+      <button type="button" id="archive-add-activity" style="padding:6px 10px;border-radius:8px;border:1px solid var(--sp-border,#ccc);background:var(--sp-surface,#fff);cursor:pointer;">+ Nouvelle activité</button>
+      <div id="archive-activity-form" style="display:none;flex-direction:column;gap:8px;">
+        <input type="text" id="archive-activity-name" placeholder="Nom de l'activité">
+      </div>
+
+      <label>Nom de la séance
+        <input type="text" id="archive-session-name" value="Séance du ${new Date().toLocaleDateString()}">
+      </label>
+    </div>
+    <p style="margin:10px 0 0;font-size:0.85rem;color:var(--sp-muted);">Astuce : vous pourrez retrouver et modifier cette séance depuis l'espace “Classes & Séances”.</p>
+    <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:14px;">
+      <button type="button" id="archive-cancel" style="padding:8px 12px;border-radius:8px;border:1px solid var(--sp-border,#ccc);background:var(--sp-surface,#fff);cursor:pointer;">Annuler</button>
+      <button type="button" id="archive-submit" style="padding:8px 12px;border-radius:8px;border:1px solid var(--sp-primary,#1e90ff);background:var(--sp-primary,#1e90ff);color:#fff;cursor:pointer;">Archiver</button>
+    </div>
+  `;
+  overlay.appendChild(card);
+  document.body.appendChild(overlay);
+
+  const classSelect = card.querySelector("#archive-class");
+  const activitySelect = card.querySelector("#archive-activity");
+  const classForm = card.querySelector("#archive-class-form");
+  const activityForm = card.querySelector("#archive-activity-form");
+
+  function refreshClassSelect() {
+    classSelect.innerHTML = classes.map(cls => `<option value="${cls.id}" ${cls.id === selectedClassId ? "selected" : ""}>${escapeHtml(cls.name)}</option>`).join("");
+    if (!classes.length) {
+      classSelect.innerHTML = `<option value="">Aucune classe</option>`;
+      selectedClassId = null;
+    }
+  }
+
+  function refreshActivitySelect() {
+    const cls = classes.find(c => c.id === selectedClassId);
+    if (!cls || !cls.activities.length) {
+      activitySelect.innerHTML = `<option value="">Aucune activité</option>`;
+      selectedActivityId = null;
+      return;
+    }
+    activitySelect.innerHTML = cls.activities.map(act => `<option value="${act.id}" ${act.id === selectedActivityId ? "selected" : ""}>${escapeHtml(act.name)}</option>`).join("");
+  }
+
+  refreshClassSelect();
+  refreshActivitySelect();
+
+  classSelect.addEventListener("change", () => {
+    selectedClassId = classSelect.value || null;
+    const cls = classes.find(c => c.id === selectedClassId);
+    selectedActivityId = cls && cls.activities.length ? cls.activities[0].id : null;
+    refreshActivitySelect();
+  });
+
+  activitySelect.addEventListener("change", () => {
+    selectedActivityId = activitySelect.value || null;
+  });
+
+  card.querySelector("#archive-add-class").addEventListener("click", () => {
+    creatingClass = !creatingClass;
+    classForm.style.display = creatingClass ? "grid" : "none";
+    if (creatingClass) {
+      classSelect.value = "";
+      selectedClassId = null;
+      refreshActivitySelect();
+    }
+  });
+
+  card.querySelector("#archive-add-activity").addEventListener("click", () => {
+    creatingActivity = !creatingActivity;
+    activityForm.style.display = creatingActivity ? "block" : "none";
+    if (creatingActivity) {
+      activitySelect.value = "";
+      selectedActivityId = null;
+    }
+  });
+
+  card.querySelector("#archive-cancel").addEventListener("click", () => overlay.remove());
+
+  card.querySelector("#archive-submit").addEventListener("click", () => {
+    const sessionName = card.querySelector("#archive-session-name").value.trim() || `Séance du ${new Date().toLocaleDateString()}`;
+    if (!creatingClass && !selectedClassId && !classes.length) {
+      alert("Merci de créer une classe.");
+      return;
+    }
+    let cls;
+    if (creatingClass) {
+      const name = card.querySelector("#archive-class-name").value.trim();
+      const color = card.querySelector("#archive-class-color").value || "#1e90ff";
+      if (!name) {
+        alert("Nom de classe requis.");
+        return;
+      }
+      cls = storeApi.createClass(name, color);
+      classes.push(cls);
+      selectedClassId = cls.id;
+    } else {
+      cls = classes.find(c => c.id === selectedClassId);
+    }
+    if (!cls) {
+      alert("Classe introuvable.");
+      return;
+    }
+    let activity;
+    if (creatingActivity) {
+      const name = card.querySelector("#archive-activity-name").value.trim();
+      if (!name) {
+        alert("Nom d'activité requis.");
+        return;
+      }
+      activity = storeApi.createActivity(name);
+      cls.activities.push(activity);
+      selectedActivityId = activity.id;
+    } else {
+      activity = cls.activities.find(a => a.id === selectedActivityId);
+      if (!activity && cls.activities.length === 0) {
+        alert("Aucune activité pour cette classe. Créez-en une.");
+        return;
+      }
+      if (!activity) {
+        alert("Activité introuvable.");
+        return;
+      }
+    }
+    const data = getCurrentDataset();
+    const session = storeApi.createSession(sessionName, data);
+    activity.sessions.unshift(session);
+    storeApi.saveClasses(classes);
+    overlay.remove();
+    alert("Séance archivée dans vos classes.");
+  });
+}
+
 function resolveNextEditableCell(rowId, field, step) {
   const cols = _lastCols || [];
   const rows = _vueCourante || [];
@@ -1129,3 +1298,11 @@ function applyInlineEdit(rowId, field, rawValue, nextFocus) {
 })();
 
 window.onload = afficherParticipants;
+
+function escapeHtml(str) {
+  return String(str == null ? "" : str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}

@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Activités de la classe</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .class-wrap{min-height:100vh;display:grid;grid-template-rows:1fr auto;background:var(--sp-bg);color:var(--sp-text);}
+    .class-main{max-width:900px;margin:0 auto;padding:22px 16px;width:100%;}
+    .page-nav{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:18px;justify-content:center;}
+    .class-head{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px;}
+    .class-info h1{margin:0;}
+    .activities-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;}
+    .activity-card{border:1px solid var(--sp-border);border-radius:14px;padding:14px;background:var(--sp-surface);box-shadow:var(--sp-card-shadow);display:flex;flex-direction:column;gap:8px;}
+    .activity-card strong{font-size:1.05rem;}
+    .activity-meta{color:var(--sp-muted);font-size:0.9rem;}
+    .activity-actions{display:flex;flex-wrap:wrap;gap:8px;}
+    .activity-actions button,
+    .activity-actions a{padding:8px 12px;border-radius:10px;border:1px solid var(--sp-border);background:var(--sp-surface);color:var(--sp-text);cursor:pointer;text-decoration:none;font-weight:600;}
+    .activity-actions a.primary{background:var(--sp-primary);border-color:var(--sp-primary);color:#fff;}
+    .add-activity-form{margin-top:18px;padding:18px;border-radius:14px;background:var(--sp-table-odd);display:flex;flex-direction:column;gap:10px;}
+    .add-activity-form input{padding:8px 10px;border-radius:8px;border:1px solid var(--sp-border);background:var(--sp-surface);color:var(--sp-text);}
+    .back-link{display:inline-flex;align-items:center;gap:6px;text-decoration:none;font-weight:600;margin-bottom:10px;}
+  </style>
+  <script src="theme.js" defer></script>
+  <script src="classes-store.js" defer></script>
+  <script src="class-detail.js" defer></script>
+</head>
+<body>
+  <div class="class-wrap">
+    <main class="class-main">
+      <nav class="page-nav" aria-label="Naviguer dans ScanProf">
+        <a href="index.html" class="button green">🏠 Accueil</a>
+        <a href="scanner.html" class="button blue">📷 Scanner</a>
+        <a href="participants.html" class="button green">👥 Participants</a>
+        <a href="classes.html" class="button teal" aria-current="page">🗂 Classes & séances</a>
+        <a href="classes.html#new-class-section" class="button yellow">➕ Créer une classe</a>
+      </nav>
+      <a href="classes.html" class="back-link">⬅ Retour aux classes</a>
+      <div class="class-head">
+        <div class="class-info">
+          <h1 id="class-title">Classe</h1>
+          <p id="class-meta" style="margin:4px 0 0;color:var(--sp-muted);"></p>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <button id="rename-class-btn">✏️ Renommer</button>
+          <button id="color-class-btn">🎨 Couleur</button>
+          <button id="delete-class-btn" class="button red">🗑 Supprimer</button>
+        </div>
+      </div>
+
+      <div id="activities-list" class="activities-grid"></div>
+
+      <section class="add-activity-form">
+        <h2 style="margin:0;">Nouvelle activité</h2>
+        <input id="new-activity-name" placeholder="Ex. Badminton">
+        <div style="display:flex;justify-content:flex-end;">
+          <button id="create-activity-btn" class="button blue" type="button">Créer</button>
+        </div>
+      </section>
+    </main>
+    <footer>ScanProf - Équipe EPS Lycée Vauban - LUXEMBOURG - JB</footer>
+  </div>
+</body>
+</html>

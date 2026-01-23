@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Sessions de l'activité</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .activity-wrap{min-height:100vh;display:grid;grid-template-rows:1fr auto;background:var(--sp-bg);color:var(--sp-text);}
+    .activity-main{max-width:1000px;margin:0 auto;padding:22px 16px;width:100%;}
+    .page-nav{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:18px;justify-content:center;}
+    .activity-head{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px;}
+    .session-list{display:flex;flex-direction:column;gap:12px;}
+    .session-card{border:1px solid var(--sp-border);border-radius:14px;padding:14px;background:var(--sp-surface);box-shadow:var(--sp-card-shadow);}
+    .session-card h3{margin:0 0 6px;}
+    .session-meta{display:flex;flex-wrap:wrap;gap:8px;font-size:0.9rem;color:var(--sp-muted);}
+    .session-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;}
+    .session-actions button{padding:8px 12px;border-radius:10px;border:1px solid var(--sp-border);background:var(--sp-surface);cursor:pointer;font-weight:600;}
+    .session-actions button.primary{background:var(--sp-primary);border-color:var(--sp-primary);color:#fff;}
+    .session-actions button.danger{background:var(--sp-accent-red);border-color:var(--sp-accent-red);color:#fff;}
+    .add-session-form{margin-top:18px;padding:18px;border-radius:14px;background:var(--sp-table-odd);display:flex;flex-direction:column;gap:10px;}
+    .add-session-form input{padding:8px 10px;border-radius:8px;border:1px solid var(--sp-border);background:var(--sp-surface);color:var(--sp-text);}
+    .back-links{display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap;}
+    .back-links a{display:inline-flex;align-items:center;gap:6px;text-decoration:none;font-weight:600;}
+    .session-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;z-index:10000;}
+    .session-overlay.sp-hidden{display:none;}
+    .session-frame{width:min(96vw,1100px);height:min(96vh,720px);background:var(--sp-surface);border-radius:16px;box-shadow:0 20px 48px rgba(0,0,0,.35);display:flex;flex-direction:column;}
+    .session-bar{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:1px solid var(--sp-border);}
+    .session-frame iframe{flex:1;width:100%;border:none;border-radius:0 0 16px 16px;background:var(--sp-bg);}
+    .session-bar button{padding:6px 12px;border-radius:8px;border:1px solid var(--sp-border);background:var(--sp-surface);cursor:pointer;}
+  </style>
+  <script src="theme.js" defer></script>
+  <script src="classes-store.js" defer></script>
+  <script src="activity-detail.js" defer></script>
+</head>
+<body>
+  <div class="activity-wrap">
+    <main class="activity-main">
+      <nav class="page-nav" aria-label="Naviguer dans ScanProf">
+        <a href="index.html" class="button green">🏠 Accueil</a>
+        <a href="scanner.html" class="button blue">📷 Scanner</a>
+        <a href="participants.html" class="button green">👥 Participants</a>
+        <a href="classes.html" class="button teal" aria-current="page">🗂 Classes & séances</a>
+        <a href="classes.html#new-class-section" class="button yellow">➕ Créer une classe</a>
+      </nav>
+      <div class="back-links">
+        <a id="back-classes" href="classes.html">⬅ Classes</a>
+        <a id="back-class" href="classes.html">⬅ Retour à la classe</a>
+      </div>
+      <div class="activity-head">
+        <div>
+          <h1 id="activity-title">Activité</h1>
+          <p id="activity-meta" style="margin:4px 0 0;color:var(--sp-muted);"></p>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <button id="rename-activity-btn">✏️ Renommer</button>
+          <button id="delete-activity-btn" class="button red">🗑 Supprimer</button>
+          <button id="export-activity-btn">📤 Exporter l'activité (CSV)</button>
+        </div>
+      </div>
+
+      <div id="sessions-list" class="session-list"></div>
+
+      <section class="add-session-form">
+        <h2 style="margin:0;">Nouvelle séance</h2>
+        <input id="new-session-name" placeholder="Ex. Séance du 15/02">
+        <div style="display:flex;justify-content:flex-end;">
+          <button id="create-session-btn" class="button blue" type="button">Créer</button>
+        </div>
+      </section>
+    </main>
+
+    <footer>ScanProf - Équipe EPS Lycée Vauban - LUXEMBOURG - JB</footer>
+  </div>
+
+  <div id="session-overlay" class="session-overlay sp-hidden" role="dialog" aria-modal="true">
+    <div class="session-frame">
+      <div class="session-bar">
+        <div>
+          <strong id="session-overlay-title">Séance</strong>
+          <span id="session-overlay-info" style="margin-left:8px;font-size:0.85rem;color:var(--sp-muted);"></span>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button id="session-overlay-save" class="button blue" type="button">💾 Enregistrer & fermer</button>
+          <button id="session-overlay-cancel" class="button red" type="button">✖ Fermer sans enregistrer</button>
+        </div>
+      </div>
+      <iframe id="session-frame" title="Édition de séance"></iframe>
+    </div>
+  </div>
+</body>
+</html>

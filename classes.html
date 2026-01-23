@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+<title>Classes</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .classes-wrap{min-height:100vh;display:grid;grid-template-rows:1fr auto;background:var(--sp-bg);color:var(--sp-text);}
+    .classes-main{max-width:900px;margin:0 auto;padding:24px 16px;width:100%;}
+    .page-nav{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:18px;justify-content:center;}
+    .classes-head{text-align:center;margin-bottom:18px;}
+    .classes-head h1{margin-bottom:6px;}
+    .classes-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;}
+    .class-card{border:1px solid var(--class-accent-border,var(--sp-border));border-radius:16px;padding:16px;box-shadow:var(--sp-card-shadow);background:var(--class-accent-soft,var(--sp-surface));display:flex;flex-direction:column;gap:10px;transition:transform .2s ease,box-shadow .2s ease;}
+    .class-card:hover{transform:translateY(-3px);box-shadow:0 10px 25px rgba(0,0,0,.08);}
+    .class-title{display:flex;align-items:center;gap:10px;font-weight:600;font-size:1.1rem;}
+    .class-color{width:20px;height:20px;border-radius:999px;border:2px solid rgba(0,0,0,.05);background:var(--class-accent,var(--sp-primary));}
+    .class-meta{font-size:0.9rem;color:var(--sp-muted);}
+    .class-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px;}
+    .class-actions button, .class-actions a{padding:8px 12px;border-radius:10px;border:1px solid var(--sp-border);background:var(--sp-surface);color:var(--sp-text);cursor:pointer;text-decoration:none;font-weight:600;}
+    .class-actions button.primary{background:var(--sp-primary);border-color:var(--sp-primary);color:#fff;}
+    .class-actions .class-enter{background:var(--class-accent,var(--sp-primary));border-color:var(--class-accent,var(--sp-primary));color:#fff;box-shadow:0 6px 16px rgba(0,0,0,.12);}
+    .class-actions .class-enter:hover{filter:brightness(.95);}
+    .empty-hint{padding:24px;border:1px dashed var(--sp-border);border-radius:14px;text-align:center;color:var(--sp-muted);}
+    .add-class-form{margin-top:18px;padding:18px;border-radius:14px;background:var(--sp-table-odd);display:flex;flex-direction:column;gap:10px;}
+    .add-class-form input{padding:8px 10px;border-radius:8px;border:1px solid var(--sp-border);background:var(--sp-surface);color:var(--sp-text);}
+    .add-class-actions{display:flex;gap:10px;justify-content:flex-end;}
+  </style>
+  <script src="theme.js" defer></script>
+  <script src="classes-store.js" defer></script>
+  <script src="classes-list.js" defer></script>
+</head>
+<body>
+  <div class="classes-wrap">
+    <main class="classes-main">
+      <nav class="page-nav" aria-label="Naviguer dans ScanProf">
+        <a href="index.html" class="button green">🏠 Accueil</a>
+        <a href="scanner.html" class="button blue">📷 Scanner</a>
+        <a href="participants.html" class="button green">👥 Participants</a>
+        <a href="classes.html" class="button teal" aria-current="page">🗂 Classes</a>
+        <a href="classes.html#new-class-section" class="button yellow">➕ Créer une classe</a>
+      </nav>
+      <div class="classes-head">
+        <h1>📚 Vos classes</h1>
+        <p>Créez une classe, choisissez une couleur puis entrez dans chaque activité pour retrouver vos séances archivées.</p>
+      </div>
+
+      <div id="classes-list" class="classes-grid"></div>
+
+      <section id="new-class-section" class="add-class-form">
+        <h2 style="margin:0;">Nouvelle classe</h2>
+        <label>Nom
+          <input id="new-class-name" placeholder="Ex. 5e A">
+        </label>
+        <label>Couleur du bouton
+          <input type="color" id="new-class-color" value="#1e90ff">
+        </label>
+        <div class="add-class-actions">
+          <button id="create-class-btn" class="button blue" type="button">Créer</button>
+        </div>
+      </section>
+
+      <div class="storage-note">
+        💡 Astuce : les données restent stockées localement sur l'appareil. Exportez régulièrement vos séances (CSV) pour garder une copie externe.
+      </div>
+    </main>
+
+    <footer>ScanProf - Équipe EPS Lycée Vauban - LUXEMBOURG - JB</footer>
+  </div>
+
+</body>
+</html>

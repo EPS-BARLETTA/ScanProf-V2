@@ -9,8 +9,6 @@
     .wrap { min-height: 100vh; display: grid; grid-template-rows: 1fr auto; background: var(--sp-bg); }
     .main { max-width: 1100px; margin: 0 auto; padding: 16px; }
     .actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: center; margin: 6px 0 10px; }
-    .button { padding: 10px 14px; border-radius: 8px; text-decoration: none; font-weight: 600; border: 1px solid var(--sp-border); cursor: pointer; background: var(--sp-surface); color: var(--sp-text); box-shadow: var(--sp-card-shadow); transition: filter .2s; }
-    .button:hover { filter: brightness(1.05); }
     .blue { background: var(--sp-primary); color:#fff; border-color: transparent; }
     .red { background: var(--sp-accent-red); color:#fff; border-color: transparent; }
     .green { background: var(--sp-accent-green); color:#fff; border-color: transparent; }
@@ -18,6 +16,12 @@
     .purple { background: var(--sp-accent-purple); color:#fff; border-color: transparent; }
     .teal { background: var(--sp-accent-teal); color:#fff; border-color: transparent; }
     .orange { background: var(--sp-accent-orange); color:#222; border-color: transparent; }
+    .menu-dropdowns { display:flex; flex-direction:column; gap:10px; margin:16px 0; }
+    .menu-group { border:1px solid var(--sp-border); border-radius:14px; padding:10px 14px; background:var(--sp-table-even); box-shadow:var(--sp-card-shadow); }
+    .menu-group summary { font-weight:600; cursor:pointer; list-style:none; }
+    .menu-group summary::-webkit-details-marker { display:none; }
+    .menu-options { margin-top:8px; display:flex; flex-wrap:wrap; gap:8px; }
+    .nav-row { display:flex; flex-wrap:wrap; gap:10px; justify-content:center; margin-top:16px; }
 
     .table-wrapper { background: var(--sp-surface); border-radius: 10px; box-shadow: var(--sp-card-shadow); padding: 12px; overflow-x: auto; }
     table { width:100%; border-collapse: collapse; min-width: 720px; }
@@ -36,6 +40,7 @@
   </style>
 
   <script src="theme.js" defer></script>
+  <script src="classes-store.js" defer></script>
   <script src="participants.js" defer></script>
 </head>
 <body>
@@ -60,10 +65,7 @@
 
       <!-- Exports / impression -->
       <div class="actions">
-        <button class="button" onclick="exporterCSV()">📥 Exporter CSV</button>
-        <button class="button" onclick="document.getElementById('csv-input').click()">📤 Réimporter CSV</button>
         <input id="csv-input" type="file" accept=".csv" style="display:none" onchange="importerCSV(event)">
-        <button class="button" onclick="imprimerTableau()">🖨️ Imprimer / PDF</button>
       </div>
 
       <!-- Tableau -->
@@ -82,20 +84,35 @@
       <!-- Post-it : info appui long -->
       <div class="actions" style="margin-top:8px;">
         <div class="memo-suppr" role="note">📝 Retirer une ligne : appui long sur la ligne</div>
-        <div class="memo-suppr" role="note">✏️ Mode édition actif : toucher un champ pour écrire (bouton violet pour verrouiller)</div>
+        <div class="memo-suppr" role="note">✏️ Mode édition actif : toucher un champ pour écrire (bouton violet ✏️ pour verrouiller / déverrouiller)</div>
       </div>
 
-      <!-- Navigation -->
-      <div class="actions" style="margin-top:12px; flex-wrap:wrap;">
-        <button type="button" class="button blue" onclick="ajouterColonneManuelle()">➕ Ajouter une colonne</button>
-        <button type="button" class="button red" onclick="supprimerColonneManuelle()">➖ Supprimer une colonne</button>
-        <button type="button" class="button orange" onclick="ajouterParticipantInline()">➕ Ajouter un élève</button>
-        <button id="edit-mode-btn" class="button purple" type="button" onclick="toggleEditMode()">✏️ Mode édition actif</button>
-        <a href="applications.html" class="button teal">🧩 Explorateur d'apps</a>
+      <div class="menu-dropdowns">
+        <details class="menu-group" open>
+          <summary>✏️ Options d’écriture</summary>
+          <div class="menu-options">
+            <button type="button" class="button" onclick="ajouterColonneManuelle()">➕ Ajouter une colonne</button>
+            <button type="button" class="button" onclick="supprimerColonneManuelle()">➖ Supprimer une colonne</button>
+            <button type="button" class="button orange" onclick="ajouterParticipantInline()">➕ Ajouter un élève</button>
+            <button id="edit-mode-btn" class="button purple" type="button" onclick="toggleEditMode()">✏️ Mode édition actif</button>
+          </div>
+        </details>
+        <details class="menu-group">
+          <summary>📁 Options d’archivage</summary>
+          <div class="menu-options">
+            <button type="button" class="button teal" onclick="ouvrirArchivageClasse()">💾 Archiver dans mes classes</button>
+            <button class="button" onclick="exporterCSV()">📥 Exporter CSV</button>
+            <button class="button" onclick="document.getElementById('csv-input').click()">📤 Réimporter CSV</button>
+            <button class="button" onclick="imprimerTableau()">🖨️ Imprimer / PDF</button>
+          </div>
+        </details>
       </div>
-      <div class="actions" style="margin-top:8px; flex-wrap:wrap;">
+
+      <div class="nav-row">
         <a href="index.html" class="button green">🏠 Accueil</a>
         <a href="scanner.html" class="button blue">📷 Scanner des QR Codes</a>
+        <a href="classes.html" class="button teal">🗂 Classes & séances</a>
+        <a href="classes.html#new-class-section" class="button yellow">➕ Créer une classe</a>
         <a href="aide.html" class="button purple">❓ Aide</a>
         <a href="groupe-zenos.html" class="button yellow">🧬 Groupes ZENOS Tour</a>
       </div>
