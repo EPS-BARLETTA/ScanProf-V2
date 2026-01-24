@@ -5,10 +5,13 @@
   <title>Participants enregistrés</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="style.css">
+
   <style>
     .wrap { min-height: 100vh; display: grid; grid-template-rows: 1fr auto; background: var(--sp-bg); }
     .main { max-width: 1100px; margin: 0 auto; padding: 16px; }
+
     .actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: center; margin: 6px 0 10px; }
+
     .blue { background: var(--sp-primary); color:#fff; border-color: transparent; }
     .red { background: var(--sp-accent-red); color:#fff; border-color: transparent; }
     .green { background: var(--sp-accent-green); color:#fff; border-color: transparent; }
@@ -16,11 +19,13 @@
     .purple { background: var(--sp-accent-purple); color:#fff; border-color: transparent; }
     .teal { background: var(--sp-accent-teal); color:#fff; border-color: transparent; }
     .orange { background: var(--sp-accent-orange); color:#222; border-color: transparent; }
+
     .menu-dropdowns { display:flex; flex-direction:column; gap:10px; margin:16px 0; }
     .menu-group { border:1px solid var(--sp-border); border-radius:14px; padding:10px 14px; background:var(--sp-table-even); box-shadow:var(--sp-card-shadow); }
     .menu-group summary { font-weight:600; cursor:pointer; list-style:none; }
     .menu-group summary::-webkit-details-marker { display:none; }
     .menu-options { margin-top:8px; display:flex; flex-wrap:wrap; gap:8px; }
+
     .nav-row { display:flex; flex-wrap:wrap; gap:10px; justify-content:center; margin-top:16px; }
 
     .table-wrapper { background: var(--sp-surface); border-radius: 10px; box-shadow: var(--sp-card-shadow); padding: 12px; overflow-x: auto; }
@@ -29,13 +34,48 @@
     thead th { background: var(--sp-sticky-bg); }
     tbody tr.pair { background: var(--sp-table-even); }
     tbody tr.impair { background: var(--sp-table-odd); }
+
     footer { background: var(--sp-primary); color:#fff; text-align:center; padding:10px 12px; }
-    input[type="text"], input[type="number"] { padding: 8px 10px; border:1px solid var(--sp-border); border-radius: 6px; min-width: 220px; background: var(--sp-surface); color: var(--sp-text); }
+
+    input[type="text"], input[type="number"] {
+      padding: 8px 10px;
+      border:1px solid var(--sp-border);
+      border-radius: 6px;
+      min-width: 220px;
+      background: var(--sp-surface);
+      color: var(--sp-text);
+    }
 
     /* ---- Post-it mémo (discret) ---- */
     .memo-suppr{
       display:inline-block; margin-top:8px; padding:6px 10px;
       font-size:.95rem; border:1px solid var(--sp-memo-border); background:var(--sp-memo-bg); border-radius:8px;
+    }
+
+    /* ---- Bandeau info (données locales) ---- */
+    .info-banner{
+      margin: 10px auto 12px;
+      max-width: 980px;
+      border: 1px solid var(--sp-border);
+      background: var(--sp-surface);
+      color: var(--sp-text);
+      border-radius: 14px;
+      padding: 10px 12px;
+      box-shadow: var(--sp-card-shadow);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .info-banner p{ margin: 0; line-height: 1.35; }
+    .info-banner .info-actions{ display:flex; gap:8px; flex-wrap:wrap; }
+    .info-banner .small{ opacity: .9; font-size: .95rem; }
+
+    /* ---- Petits ajustements hiérarchie ---- */
+    .section-title{
+      text-align:center;
+      margin:6px 0 10px;
     }
   </style>
 
@@ -43,33 +83,47 @@
   <script src="classes-store.js" defer></script>
   <script src="participants.js" defer></script>
 </head>
+
 <body>
   <div class="wrap">
     <main class="main">
-      <h1 style="text-align:center; margin:6px 0 10px;">👥 Participants enregistrés</h1>
+      <h1 class="section-title">👥 Participants enregistrés</h1>
+
+      <!-- Bandeau local-first -->
+      <div id="local-banner" class="info-banner" role="note" aria-label="Information de stockage">
+        <p>
+          <strong>⚠️ Données enregistrées sur cet appareil.</strong>
+          <span class="small">Pense à exporter régulièrement (CSV / PDF), surtout sur iPad/Safari.</span>
+        </p>
+        <div class="info-actions">
+          <button type="button" class="button" onclick="exporterCSV()">📥 Export CSV</button>
+          <button type="button" class="button" onclick="imprimerTableau()">🖨️ PDF</button>
+          <button type="button" class="button grey" id="hide-local-banner">🙈 Masquer</button>
+        </div>
+      </div>
 
       <!-- Tri -->
-      <div class="actions">
+      <div class="actions" aria-label="Tri">
         <label for="tri-select">Trier par :</label>
         <select id="tri-select"></select>
-        <button class="button blue" onclick="trierParticipants()">🔃 Trier</button>
-        <button class="button red" onclick="resetData()">♻️ Réinitialiser</button>
+        <button class="button blue" type="button" onclick="trierParticipants()">🔃 Appliquer le tri</button>
+        <button class="button red" type="button" onclick="resetData()">♻️ Réinitialiser</button>
       </div>
 
       <!-- Filtre texte -->
-      <div class="actions">
-        <label for="filtre-txt">Filtrer (texte) :</label>
+      <div class="actions" aria-label="Filtre texte">
+        <label for="filtre-txt">Filtrer :</label>
         <input id="filtre-txt" type="text" placeholder="ex. Lola, 5A, F..." oninput="filtrerTexte()">
-        <button class="button" onclick="filtrerTexte()">🔎 Rechercher</button>
+        <button class="button" type="button" onclick="filtrerTexte()">🔎 Rechercher</button>
       </div>
 
-      <!-- Exports / impression -->
-      <div class="actions">
+      <!-- Import CSV (input caché) -->
+      <div class="actions" aria-label="Import CSV">
         <input id="csv-input" type="file" accept=".csv" style="display:none" onchange="importerCSV(event)">
       </div>
 
       <!-- Tableau -->
-      <div class="table-wrapper">
+      <div class="table-wrapper" aria-label="Tableau participants">
         <table id="participants-table">
           <thead id="table-head">
             <tr>
@@ -97,13 +151,14 @@
             <button id="edit-mode-btn" class="button purple" type="button" onclick="toggleEditMode()">✏️ Mode édition actif</button>
           </div>
         </details>
+
         <details class="menu-group">
           <summary>📁 Options d’archivage</summary>
           <div class="menu-options">
             <button type="button" class="button teal" onclick="ouvrirArchivageClasse()">💾 Archiver dans mes classes</button>
-            <button class="button" onclick="exporterCSV()">📥 Exporter CSV</button>
-            <button class="button" onclick="document.getElementById('csv-input').click()">📤 Réimporter CSV</button>
-            <button class="button" onclick="imprimerTableau()">🖨️ Imprimer / PDF</button>
+            <button type="button" class="button" onclick="exporterCSV()">📥 Exporter CSV</button>
+            <button type="button" class="button" onclick="document.getElementById('csv-input').click()">📤 Réimporter CSV</button>
+            <button type="button" class="button" onclick="imprimerTableau()">🖨️ Imprimer / PDF</button>
           </div>
         </details>
       </div>
@@ -122,6 +177,25 @@
       ScanProf - Équipe EPS Lycée Vauban - LUXEMBOURG - JB
     </footer>
   </div>
+
+  <!-- Bandeau : mémorise "Masquer" -->
+  <script>
+    (function () {
+      const key = "sp_hide_local_banner";
+      const banner = document.getElementById("local-banner");
+      const btn = document.getElementById("hide-local-banner");
+      if (!banner || !btn) return;
+
+      if (localStorage.getItem(key) === "1") {
+        banner.style.display = "none";
+        return;
+      }
+      btn.addEventListener("click", () => {
+        localStorage.setItem(key, "1");
+        banner.style.display = "none";
+      });
+    })();
+  </script>
 
   <!-- Migration unique : convertit les clés MAJ -> minuscules (base fields) -->
   <script>
