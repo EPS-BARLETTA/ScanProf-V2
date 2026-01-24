@@ -7,6 +7,7 @@
   let activity = null;
 
   const els = {};
+  const state = { pendingSession: null };
 
   document.addEventListener("DOMContentLoaded", () => {
     els.sessionsList = document.getElementById("sessions-list");
@@ -23,13 +24,16 @@
     const url = new URL(window.location.href);
     const classId = url.searchParams.get("class");
     const activityId = url.searchParams.get("activity");
-    cls = classes.find(c => c.id === classId);
-    activity = cls ? cls.activities.find(a => a.id === activityId) : null;
+
+    cls = classes.find(c => String(c.id) === String(classId));
+    activity = cls ? cls.activities.find(a => String(a.id) === String(activityId)) : null;
+
     if (!cls || !activity) {
       alert("Activité introuvable.");
       window.location.href = "classes.html";
       return;
     }
+
     setupLinks();
     bind();
     render();
@@ -41,30 +45,39 @@
 
   function bind() {
     document.getElementById("activity-title").textContent = `${activity.name} — classe ${cls.name}`;
+
     document.getElementById("rename-activity-btn").addEventListener("click", () => {
       const name = prompt("Renommer l'activité :", activity.name);
       if (name == null) return;
-      activity.name = name.trim() || activity.name;
+      const next = name.trim();
+      if (!next) return;
+      activity.name = next;
       save();
       render();
     });
+
     document.getElementById("delete-activity-btn").addEventListener("click", () => {
       if (!confirm(`Supprimer l'activité « ${activity.name} » ?`)) return;
       cls.activities = cls.activities.filter(a => a.id !== activity.id);
       save();
       window.location.href = `class.html?id=${encodeURIComponent(cls.id)}`;
     });
+
     document.getElementById("export-activity-btn").addEventListener("click", exportActivityCSV);
+
     els.createSessionBtn.addEventListener("click", () => {
       const name = els.newSessionName.value.trim();
       const sessionName = name || `Séance ${activity.sessions.length + 1}`;
       const newSession = store.createSession(sessionName, []);
       activity.sessions.unshift(newSession);
+
       save();
-      renderSessions();
+      render();
       openSessionEditor(newSession, true);
+
       els.newSessionName.value = "";
     });
+
     els.sessionSave.addEventListener("click", () => closeSessionEditor(true));
     els.sessionCancel.addEventListener("click", () => closeSessionEditor(false));
   }
@@ -79,6 +92,7 @@
       els.sessionsList.innerHTML = `<div class="empty-hint">Aucune séance archivée. Créez-en une ou utilisez “Archiver” depuis la page Participants.</div>`;
       return;
     }
+
     els.sessionsList.innerHTML = activity.sessions.map(sess => `
       <article class="session-card">
         <h3>${escapeHtml(sess.name)}</h3>
@@ -89,14 +103,14 @@
         </div>
         <div class="session-actions">
           <button data-action="open" data-id="${sess.id}" class="primary">✏️ Ouvrir</button>
-          <button data-action="load" data-id="${sess.id}">➡️ Charger dans Participants</button>
           <button data-action="csv" data-id="${sess.id}">📄 CSV</button>
           <button data-action="json" data-id="${sess.id}">🧾 JSON</button>
-          <button data-action="rename" data-id="${sess.id}">✏️ Renommer</button>
+          <button data-action="rename" data-id="${sess.id}">✏️ Titre</button>
           <button data-action="delete" data-id="${sess.id}" class="danger">🗑 Supprimer</button>
         </div>
       </article>
     `).join("");
+
     els.sessionsList.querySelectorAll("button[data-action]").forEach(btn => {
       const action = btn.getAttribute("data-action");
       const id = btn.getAttribute("data-id");
@@ -105,66 +119,92 @@
   }
 
   function handleSessionAction(action, id) {
-    const session = activity.sessions.find(s => s.id === id);
+    const session = activity.sessions.find(s => String(s.id) === String(id));
     if (!session) return;
+
     switch (action) {
       case "open":
         openSessionEditor(session);
         break;
-      case "load":
-        localStorage.setItem("eleves", JSON.stringify(session.data || []));
-        window.location.href = "participants.html";
-        break;
+
       case "csv":
         exportSessionCSV(session);
         break;
+
       case "json":
         exportSessionJSON(session);
         break;
-      case "rename":
+
+      case "rename": {
         const name = prompt("Renommer la séance :", session.name);
         if (name == null) return;
-        session.name = name.trim() || session.name;
+        const next = name.trim();
+        if (!next) return;
+
+        session.name = next;
+        session.updatedAt = new Date().toISOString();
+
+        // Si la séance est ouverte dans l'overlay, on met à jour le titre affiché
+        if (state.pendingSession && String(state.pendingSession.id) === String(session.id)) {
+          els.sessionTitle.textContent = session.name;
+        }
+
         save();
-        renderSessions();
+        render(); // render complet (plus fiable iPad/Safari)
         break;
-      case "delete":
+      }
+
+      case "delete": {
         if (!confirm(`Supprimer la séance « ${session.name} » ?`)) return;
-        activity.sessions = activity.sessions.filter(s => s.id !== session.id);
+
+        // Si la séance est ouverte, on ferme proprement
+        if (state.pendingSession && String(state.pendingSession.id) === String(session.id)) {
+          closeSessionEditor(false);
+        }
+
+        activity.sessions = activity.sessions.filter(s => String(s.id) !== String(session.id));
         save();
-        renderSessions();
+        render(); // render complet
         break;
+      }
     }
   }
 
   function openSessionEditor(session, isNew) {
     state.pendingSession = session;
+
     const backup = localStorage.getItem("eleves");
     localStorage.setItem("scanprof_editor_backup", backup == null ? "__empty__" : backup);
     localStorage.setItem("eleves", JSON.stringify(session.data || []));
+
     els.sessionTitle.textContent = session.name;
     els.sessionInfo.textContent = `${cls.name} • ${activity.name}`;
+
     els.sessionOverlay.classList.remove("sp-hidden");
     els.sessionFrame.src = "participants.html?embedded=1";
+
     if (!isNew) window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   function closeSessionEditor(saveChanges) {
     els.sessionFrame.src = "about:blank";
     els.sessionOverlay.classList.add("sp-hidden");
+
     const backup = localStorage.getItem("scanprof_editor_backup");
     const session = state.pendingSession;
+
     if (session && saveChanges) {
       try {
         const data = JSON.parse(localStorage.getItem("eleves") || "[]");
         session.data = Array.isArray(data) ? data : [];
         session.updatedAt = new Date().toISOString();
         save();
-        renderSessions();
+        render(); // meta + liste
       } catch (err) {
         console.warn("Impossible de récupérer les données de séance", err);
       }
     }
+
     restoreBackup(backup);
     state.pendingSession = null;
   }
@@ -174,8 +214,6 @@
     else if (marker != null) localStorage.setItem("eleves", marker);
     localStorage.removeItem("scanprof_editor_backup");
   }
-
-  const state = { pendingSession: null };
 
   function exportSessionCSV(session) {
     const data = session.data || [];
@@ -200,12 +238,15 @@
     }
     const columns = new Set(["__seance"]);
     const rows = [];
+
     activity.sessions.forEach(sess => {
       (sess.data || []).forEach(row => {
         Object.keys(row || {}).forEach(key => { if (!isInternalKey(key)) columns.add(key); });
       });
     });
+
     const header = Array.from(columns);
+
     activity.sessions.forEach(sess => {
       const data = Array.isArray(sess.data) ? sess.data : [];
       if (!data.length) {
@@ -218,6 +259,7 @@
         rows.push(header.map(col => csvValue(obj[col])));
       });
     });
+
     const csv = [header.join(","), ...rows.map(r => r.join(","))].join("\n");
     downloadFile(csv, `activite_${slug(activity.name)}.csv`, "text/csv");
   }
@@ -268,5 +310,9 @@
 
   function isInternalKey(key = "") {
     return typeof key === "string" && key.startsWith("__");
+  }
+
+  function save() {
+    store.saveClasses(classes);
   }
 })();
