@@ -5,27 +5,60 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Aide - ScanProf</title>
   <link rel="stylesheet" href="style.css" />
+
   <style>
-    .wrap { min-height: 100vh; display: grid; grid-template-rows: 1fr auto; background: var(--sp-bg); color: var(--sp-text); }
+    .wrap {
+      min-height: 100vh;
+      display: grid;
+      grid-template-rows: 1fr auto;
+      background: var(--sp-bg);
+      color: var(--sp-text);
+    }
+
     main { max-width: 900px; margin: 0 auto; padding: 16px; }
     header { background: var(--sp-primary); color: #fff; padding: 14px; text-align: center; }
     section { margin: 12px 0; }
-    .info-card { background: var(--sp-surface); border-radius: 16px; padding: 18px; box-shadow: var(--sp-card-shadow); border: 1px solid rgba(0,0,0,.05); }
+
+    .info-card {
+      background: var(--sp-surface);
+      border-radius: 16px;
+      padding: 18px;
+      box-shadow: var(--sp-card-shadow);
+      border: 1px solid var(--sp-border);
+    }
+
     .info-card h2 { margin-top: 0; }
     .info-card ul, .info-card ol, .info-card p { margin: 0 0 10px; line-height: 1.45; }
-    .info-card[data-tone="lavender"] { background: #f4edff; border-color: #e0d4ff; }
-    .info-card[data-tone="mint"] { background: #edfff9; border-color: #c6f2e1; }
-    .info-card[data-tone="peach"] { background: #fff5ec; border-color: #ffdcbc; }
-    .info-card[data-tone="sky"] { background: #ecf5ff; border-color: #c8e4ff; }
-    .info-card[data-tone="amber"] { background: #fffbe6; border-color: #ffe8b5; }
+
+    /* --- Correctif mode sombre : les "tones" ne doivent pas forcer des fonds clairs --- */
+
+    /* Thème clair : on garde les couleurs pastel */
+    html:not([data-theme="dark"]) .info-card[data-tone="lavender"] { background: #f4edff; border-color: #e0d4ff; }
+    html:not([data-theme="dark"]) .info-card[data-tone="mint"]     { background: #edfff9; border-color: #c6f2e1; }
+    html:not([data-theme="dark"]) .info-card[data-tone="peach"]    { background: #fff5ec; border-color: #ffdcbc; }
+    html:not([data-theme="dark"]) .info-card[data-tone="sky"]      { background: #ecf5ff; border-color: #c8e4ff; }
+    html:not([data-theme="dark"]) .info-card[data-tone="amber"]    { background: #fffbe6; border-color: #ffe8b5; }
+
+    /* Thème sombre : on revient aux variables pour garantir le contraste */
+    html[data-theme="dark"] .info-card[data-tone="lavender"],
+    html[data-theme="dark"] .info-card[data-tone="mint"],
+    html[data-theme="dark"] .info-card[data-tone="peach"],
+    html[data-theme="dark"] .info-card[data-tone="sky"],
+    html[data-theme="dark"] .info-card[data-tone="amber"] {
+      background: var(--sp-surface);
+      border-color: var(--sp-border);
+    }
+
     .page-nav { display:flex; flex-wrap:wrap; gap:10px; justify-content:center; margin:16px 0 8px; }
     ol { margin-left: 20px; }
     ul { margin-left: 20px; }
     .actions { display:flex; gap:10px; justify-content:center; margin-top: 10px; }
     footer { background:var(--sp-primary); color:#fff; text-align:center; padding:10px 12px; }
   </style>
+
   <script src="theme.js" defer></script>
 </head>
+
 <body>
   <div class="wrap">
     <header>
