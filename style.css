@@ -136,6 +136,7 @@ a.button:focus-visible,
   outline: 2px solid var(--sp-primary);
   outline-offset: 2px;
 }
+
 select {
   margin: 0.5em;
   padding: 0.5em 1em;
@@ -256,4 +257,15 @@ textarea {
 .theme-toggle:focus-visible {
   outline: 2px solid var(--sp-primary);
   outline-offset: 2px;
+}
+
+/* -----------------------------------------------------------------------
+   Correctif : boutons "neutres" dans la liste des séances (CSV / JSON / Titre)
+   En mode clair, le texte blanc était invisible sur un fond clair.
+   On garde le style "bouton" mais avec fond surface + texte sp-text.
+------------------------------------------------------------------------- */
+.session-actions button:not(.primary):not(.danger) {
+  background: var(--sp-surface);
+  color: var(--sp-text);
+  border: 1px solid var(--sp-border);
 }
