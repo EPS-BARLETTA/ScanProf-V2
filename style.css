@@ -259,13 +259,10 @@ textarea {
   outline-offset: 2px;
 }
 
-/* -----------------------------------------------------------------------
-   Correctif : boutons "neutres" dans la liste des séances (CSV / JSON / Titre)
-   En mode clair, le texte blanc était invisible sur un fond clair.
-   On garde le style "bouton" mais avec fond surface + texte sp-text.
-------------------------------------------------------------------------- */
+/* Correctif lisibilité boutons CSV / JSON / Titre */
 .session-actions button:not(.primary):not(.danger) {
-  background: var(--sp-surface);
-  color: var(--sp-text);
+  background: var(--sp-surface) !important;
+  color: var(--sp-text) !important;
   border: 1px solid var(--sp-border);
 }
+
