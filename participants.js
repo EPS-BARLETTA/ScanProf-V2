@@ -562,6 +562,9 @@ function afficherParticipants() {
   ensureOrdreButton();
   ensureColumnsButton();
 
+  // ✅ (polish) texte cohérent du bouton "Mode édition" dès l’ouverture
+  applyEditModeState();
+
   updateTable(_vueCourante);
 }
 
@@ -578,7 +581,6 @@ function toggleEditMode(force) {
   else _editMode = !_editMode;
   applyEditModeState();
 }
-
 // ------------ Rendu tableau ------------
 function updateTable(data) {
   const thead = document.getElementById("table-head");
@@ -661,12 +663,12 @@ function ajouterColonneManuelle() {
   const label = saisie.trim();
   const key = normalizeColumnKey(label);
   if (!key) {
-    alert("Nom de colonne invalide.");
+    showToast("Nom de colonne invalide.", "error");
     return;
   }
   const customs = loadCustomColumns();
   if (customs.some(col => col.key === key)) {
-    alert("Cette colonne existe déjà.");
+    showToast("Cette colonne existe déjà.", "warn");
     return;
   }
   customs.push({ key, label: label || key });
@@ -686,12 +688,13 @@ function ajouterColonneManuelle() {
     });
   }
   updateTable(_vueCourante.length ? _vueCourante : augmentData(_elevesBrut));
+  showToast("✅ Colonne ajoutée.", "ok");
 }
 
 function supprimerColonneManuelle() {
   const customs = loadCustomColumns();
   if (!customs.length) {
-    alert("Aucune colonne personnalisée à supprimer.");
+    showToast("Aucune colonne personnalisée à supprimer.", "info");
     return;
   }
   const overlay = document.createElement("div");
@@ -735,6 +738,7 @@ function supprimerColonneManuelle() {
     if (index === -1) return;
     const col = customs.splice(index, 1)[0];
     applyColumnRemoval(col, customs);
+    showToast("🗑️ Colonne supprimée.", "warn");
   });
 }
 
@@ -763,6 +767,7 @@ function ajouterParticipantInline() {
   if (!_editMode) toggleEditMode(true);
   updateTable(_vueCourante);
   focusInlineCell(blank.__id, "nom");
+  showToast("✅ Ligne ajoutée.", "ok");
 }
 
 function focusInlineCell(rowId, field) {
@@ -783,7 +788,7 @@ function getCurrentDataset() {
 function ouvrirArchivageClasse() {
   const storeApi = window.ScanProfClassesStore;
   if (!storeApi) {
-    alert("La bibliothèque des classes n'est pas disponible.");
+    showToast("❌ La bibliothèque des classes n'est pas disponible.", "error");
     return;
   }
   let classes = storeApi.loadClasses();
@@ -891,7 +896,7 @@ function ouvrirArchivageClasse() {
   card.querySelector("#archive-submit").addEventListener("click", () => {
     const sessionName = card.querySelector("#archive-session-name").value.trim() || `Séance du ${new Date().toLocaleDateString()}`;
     if (!creatingClass && !selectedClassId && !classes.length) {
-      alert("Merci de créer une classe.");
+      showToast("Merci de créer une classe.", "warn");
       return;
     }
     let cls;
@@ -899,7 +904,7 @@ function ouvrirArchivageClasse() {
       const name = card.querySelector("#archive-class-name").value.trim();
       const color = card.querySelector("#archive-class-color").value || "#1e90ff";
       if (!name) {
-        alert("Nom de classe requis.");
+        showToast("Nom de classe requis.", "error");
         return;
       }
       cls = storeApi.createClass(name, color);
@@ -909,14 +914,14 @@ function ouvrirArchivageClasse() {
       cls = classes.find(c => c.id === selectedClassId);
     }
     if (!cls) {
-      alert("Classe introuvable.");
+      showToast("Classe introuvable.", "error");
       return;
     }
     let activity;
     if (creatingActivity) {
       const name = card.querySelector("#archive-activity-name").value.trim();
       if (!name) {
-        alert("Nom d'activité requis.");
+        showToast("Nom d'activité requis.", "error");
         return;
       }
       activity = storeApi.createActivity(name);
@@ -925,11 +930,11 @@ function ouvrirArchivageClasse() {
     } else {
       activity = cls.activities.find(a => a.id === selectedActivityId);
       if (!activity && cls.activities.length === 0) {
-        alert("Aucune activité pour cette classe. Créez-en une.");
+        showToast("Aucune activité pour cette classe. Créez-en une.", "warn");
         return;
       }
       if (!activity) {
-        alert("Activité introuvable.");
+        showToast("Activité introuvable.", "error");
         return;
       }
     }
@@ -938,7 +943,9 @@ function ouvrirArchivageClasse() {
     activity.sessions.unshift(session);
     storeApi.saveClasses(classes);
     overlay.remove();
-    alert("Séance archivée dans vos classes.");
+
+    // ✅ (toast) remplace l’alert final
+    showToast("✅ Séance archivée dans vos classes.", "ok");
   });
 }
 
@@ -1001,6 +1008,7 @@ function exporterCSV() {
   a.href = url; a.download = "participants.csv";
   document.body.appendChild(a); a.click(); document.body.removeChild(a);
   URL.revokeObjectURL(url);
+  showToast("✅ CSV exporté.", "ok");
 }
 
 // ------------ Import CSV (inchangé) ------------
@@ -1035,6 +1043,7 @@ function importerCSV(event) {
     document.getElementById("tri-select").innerHTML = keys.map(k => `<option value="${k}">${humanLabel(k)}</option>`).join("");
 
     updateTable(_vueCourante);
+    showToast("✅ CSV importé.", "ok");
   };
   reader.readAsText(file);
 }
@@ -1045,7 +1054,7 @@ function imprimerTableau() {
   if (!table) return;
 
   const win = window.open("", "_blank");
-  if (!win) { alert("Veuillez autoriser l’ouverture de fenêtres pour imprimer."); return; }
+  if (!win) { showToast("⚠️ Autorisez l’ouverture de fenêtres pour imprimer.", "warn"); return; }
 
   win.document.write(`
     <html>
@@ -1103,6 +1112,7 @@ function resetData() {
     _elevesBrut = [];
     _vueCourante = [];
     updateTable([]);
+    showToast("🧹 Liste réinitialisée.", "warn");
   }
 }
 
@@ -1260,6 +1270,9 @@ function applyInlineEdit(rowId, field, rawValue, nextFocus) {
     _elevesBrut = filtered.slice();
     _vueCourante = augmentData(_elevesBrut);
     updateTable(_vueCourante);
+
+    // ✅ toast après suppression
+    showToast("🗑️ Ligne supprimée.", "warn");
   }
 
   function startPress(row, x, y) {
@@ -1271,6 +1284,7 @@ function applyInlineEdit(rowId, field, rawValue, nextFocus) {
       const key = targetRow?.dataset?.key;
       if (!key) return clearTimer();
 
+      // ✅ confirm conservé (sécurité prof)
       if (confirm("Supprimer cette ligne ?")) {
         deleteByKey(key);
       }
@@ -1296,6 +1310,49 @@ function applyInlineEdit(rowId, field, rawValue, nextFocus) {
     if (dx > MOVE_TOL || dy > MOVE_TOL) clearTimer();
   }, { passive: true });
 })();
+
+// ------------ Toast (message non bloquant) ------------
+function showToast(message, type = "info") {
+  let el = document.getElementById("sp-toast");
+  if (!el) {
+    el = document.createElement("div");
+    el.id = "sp-toast";
+    el.style.cssText = `
+      position: fixed; left: 50%; bottom: 18px; transform: translateX(-50%);
+      z-index: 999999; padding: 10px 14px; border-radius: 12px;
+      border: 1px solid var(--sp-border); background: var(--sp-surface);
+      color: var(--sp-text); box-shadow: var(--sp-card-shadow);
+      font-weight: 600; max-width: min(92vw, 520px);
+      opacity: 0; transition: opacity .18s ease, transform .18s ease;
+    `;
+    document.body.appendChild(el);
+  }
+
+  // petit code couleur selon type
+  const tones = {
+    info:   "border:1px solid var(--sp-border);",
+    ok:     "border:1px solid rgba(46,204,113,.7);",
+    warn:   "border:1px solid rgba(255,217,92,.8);",
+    error:  "border:1px solid rgba(255,91,107,.8);"
+  };
+  el.style.cssText += (tones[type] || tones.info);
+
+  el.textContent = message;
+
+  // reset animation
+  el.style.opacity = "0";
+  el.style.transform = "translateX(-50%) translateY(6px)";
+  requestAnimationFrame(() => {
+    el.style.opacity = "1";
+    el.style.transform = "translateX(-50%) translateY(0)";
+  });
+
+  clearTimeout(showToast._t);
+  showToast._t = setTimeout(() => {
+    el.style.opacity = "0";
+    el.style.transform = "translateX(-50%) translateY(6px)";
+  }, 2200);
+}
 
 window.onload = afficherParticipants;
 
