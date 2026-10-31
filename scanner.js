@@ -46,13 +46,21 @@ function onDecoded(decodedText, outlet) {
   handleScan(decodedText, outlet);
 }
 
+// Certains générateurs de QR (ex. ancienne version de ClimbTrack) ajoutent
+// un caractère invisible (BOM) au début dès qu'il y a un accent :
+// JSON.parse le refuse, on le retire.
+function stripBom(text) {
+  return String(text || "").replace(/^(?:﻿|ï»¿)+/, "").trim();
+}
+
 function parseQrPayload(decodedText) {
   const core = window.ScanProfCore;
-  const repaired = core ? core.fixAccents(decodedText) : decodedText;
+  const original = stripBom(decodedText);
+  const repaired = stripBom(core ? core.fixAccents(decodedText) : decodedText);
   try {
     return JSON.parse(repaired);
   } catch (err) {
-    if (repaired !== decodedText) return JSON.parse(decodedText);
+    if (repaired !== original) return JSON.parse(original);
     throw err;
   }
 }

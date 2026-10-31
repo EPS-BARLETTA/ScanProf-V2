@@ -4,7 +4,7 @@
  * Bibliothèque QR (lib/, ne change jamais) : cache d'abord.
  * Augmenter VERSION à chaque mise en ligne importante.
  */
-const VERSION = "scanprof-v2-2026-10-31a";
+const VERSION = "scanprof-v2-2026-10-31b";
 const PREFIX = "scanprof-v2-";
 
 const FILES = [
