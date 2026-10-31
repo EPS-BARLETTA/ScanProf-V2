@@ -1,14 +1,25 @@
+// Délai pendant lequel un même QR resté devant la caméra est ignoré
+const SAME_QR_COOLDOWN_MS = 4000;
+let _lastScan = { text: "", at: 0 };
+let _scannerInstance = null;
+
 function startScanner() {
   const qrRegion = document.getElementById("reader");
   if (!qrRegion) return;
   const resultDisplay = document.getElementById("scan-result");
 
+  if (typeof Html5Qrcode === "undefined") {
+    qrRegion.innerHTML = "<p>❌ Le lecteur QR n'a pas pu être chargé. Rechargez la page.</p>";
+    return;
+  }
+
   const scanner = new Html5Qrcode("reader");
+  _scannerInstance = scanner;
   scanner
     .start(
       { facingMode: "environment" },
       { fps: 10, qrbox: 250 },
-      (decodedText) => handleScan(decodedText, resultDisplay),
+      (decodedText) => onDecoded(decodedText, resultDisplay),
       () => {
         /* ignore */
       }
@@ -18,10 +29,61 @@ function startScanner() {
     });
 }
 
+// Libère la caméra quand on quitte la page
+window.addEventListener("pagehide", () => {
+  if (_scannerInstance && _scannerInstance.isScanning) {
+    _scannerInstance.stop().catch(() => {});
+  }
+});
+
+function onDecoded(decodedText, outlet) {
+  const now = Date.now();
+  if (decodedText === _lastScan.text && now - _lastScan.at < SAME_QR_COOLDOWN_MS) {
+    _lastScan.at = now; // le QR est toujours devant la caméra : on prolonge
+    return;
+  }
+  _lastScan = { text: decodedText, at: now };
+  handleScan(decodedText, outlet);
+}
+
+function parseQrPayload(decodedText) {
+  const core = window.ScanProfCore;
+  const repaired = core ? core.fixAccents(decodedText) : decodedText;
+  try {
+    return JSON.parse(repaired);
+  } catch (err) {
+    if (repaired !== decodedText) return JSON.parse(decodedText);
+    throw err;
+  }
+}
+
+function playFeedback(success) {
+  try {
+    if (navigator.vibrate) navigator.vibrate(success ? 80 : [60, 60, 60]);
+  } catch (e) {}
+  try {
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    if (!Ctx) return;
+    playFeedback._ctx = playFeedback._ctx || new Ctx();
+    const ctx = playFeedback._ctx;
+    if (ctx.state === "suspended") ctx.resume();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = "sine";
+    osc.frequency.value = success ? 1046 : 220;
+    gain.gain.setValueAtTime(0.0001, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.25, ctx.currentTime + 0.01);
+    gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + (success ? 0.15 : 0.35));
+    osc.connect(gain).connect(ctx.destination);
+    osc.start();
+    osc.stop(ctx.currentTime + 0.4);
+  } catch (e) {}
+}
+
 function handleScan(decodedText, outlet) {
   const store = window.ScanProfStore || null;
   try {
-    const payload = JSON.parse(decodedText);
+    const payload = parseQrPayload(decodedText);
     if (!store) {
       const legacy = legacyStoreParticipants(payload);
       showMessage(outlet, legacy.message, legacy.ok);
@@ -178,10 +240,15 @@ function showMessage(outlet, text, success) {
   if (!outlet) return;
   outlet.innerText = text;
   outlet.style.color = success ? "#138c27" : "#b00020";
+  outlet.classList.remove("scan-flash-ok", "scan-flash-err");
+  void outlet.offsetWidth; // relance l'animation
+  outlet.classList.add(success ? "scan-flash-ok" : "scan-flash-err");
+  playFeedback(success);
   clearTimeout(showMessage._timer);
   showMessage._timer = setTimeout(() => {
     outlet.innerText = "";
-  }, 1800);
+    outlet.classList.remove("scan-flash-ok", "scan-flash-err");
+  }, 4500);
 }
 
 window.onload = startScanner;

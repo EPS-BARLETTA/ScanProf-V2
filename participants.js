@@ -999,15 +999,10 @@ function exporterCSV() {
   let header = allColumnKeys(data);
   if (header.some(k => /^T\d+$/i.test(k))) header = header.filter(k => !isSplitKey(k));
 
-  const rows = data.map(row => header.map(k => (row[k] ?? "")).join(","));
-  const csv = [header.join(","), ...rows].join("\n");
-
-  const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url; a.download = "participants.csv";
-  document.body.appendChild(a); a.click(); document.body.removeChild(a);
-  URL.revokeObjectURL(url);
+  const core = window.ScanProfCore;
+  const rows = data.map(row => header.map(k => (row[k] ?? "")));
+  const stamp = new Date().toISOString().slice(0, 10);
+  core.downloadCSV(core.toCSV(header, rows), `participants_${stamp}.csv`);
   showToast("✅ CSV exporté.", "ok");
 }
 
@@ -1019,16 +1014,9 @@ function importerCSV(event) {
   const reader = new FileReader();
   reader.onload = function (e) {
     const text = e.target.result;
-    const lines = text.split(/\r?\n/).filter(l => l.trim() !== "");
-    if (!lines.length) return;
-
-    const headers = lines[0].split(",").map(h => h.trim());
-    const data = lines.slice(1).map(line => {
-      const values = line.split(",");
-      const obj = {};
-      headers.forEach((h, i) => obj[h] = (values[i] || "").trim());
-      return obj;
-    });
+    const parsed = window.ScanProfCore.parseCSV(text);
+    const data = parsed.records;
+    if (!data.length) { showToast("⚠️ Fichier CSV vide ou illisible.", "warn"); return; }
 
     normalizeEleves(data);
     saveEleves(data);
@@ -1045,7 +1033,8 @@ function importerCSV(event) {
     updateTable(_vueCourante);
     showToast("✅ CSV importé.", "ok");
   };
-  reader.readAsText(file);
+  reader.readAsText(file, "utf-8");
+  event.target.value = "";
 }
 
 // ------------ Impression (aperçu + bouton) ------------
@@ -1097,12 +1086,30 @@ function envoyerParMail() {
   let header = allColumnKeys(data);
   if (header.some(k => /^T\d+$/i.test(k))) header = header.filter(k => !isSplitKey(k));
 
-  const lignes = data.map(e => header.map(k => (e[k] ?? "")).join("\t")).join("%0A");
-  const entete = header.join("\t");
+  const tableau = [header.join("\t"), ...data.map(e => header.map(k => (e[k] ?? "")).join("\t"))].join("\n");
+  const intro = "Bonjour,\n\nVoici la liste des participants scannés depuis ScanProf :\n\n";
+  const fin = "\n\nCordialement.";
+  const subject = encodeURIComponent("Participants ScanProf");
+  const fullBody = encodeURIComponent(intro + tableau + fin);
 
-  const body = `Bonjour,%0A%0AVoici la liste des participants scannés depuis ScanProf :%0A%0A${encodeURIComponent(entete)}%0A${encodeURIComponent(lignes)}%0A%0ACordialement.`;
-  const mailto = `mailto:?subject=${encodeURIComponent("Participants ScanProf")}&body=${body}`;
-  window.location.href = mailto;
+  // Les liens mail sont limités en longueur : au-delà, le tableau est copié
+  // dans le presse-papiers pour être collé dans le message.
+  if (fullBody.length <= 1800) {
+    window.location.href = `mailto:?subject=${subject}&body=${fullBody}`;
+    return;
+  }
+  const shortBody = encodeURIComponent(intro + "(Collez ici le tableau : il a été copié automatiquement.)" + fin);
+  const open = () => { window.location.href = `mailto:?subject=${subject}&body=${shortBody}`; };
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(tableau).then(() => {
+      showToast("📋 Liste longue : tableau copié, collez-le dans le mail.", "ok");
+      setTimeout(open, 600);
+    }).catch(() => {
+      showToast("⚠️ Liste trop longue pour un mail : utilisez l’export CSV.", "warn");
+    });
+  } else {
+    showToast("⚠️ Liste trop longue pour un mail : utilisez l’export CSV.", "warn");
+  }
 }
 
 // ------------ Réinitialisation ------------

@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sauvegarder / Restaurer - ScanProf</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .bk-wrap {
+      min-height: 100vh;
+      display: grid;
+      grid-template-rows: 1fr auto;
+      background: var(--sp-bg);
+      color: var(--sp-text);
+    }
+    .bk-main { width: min(640px, 92vw); margin: 0 auto; padding: 24px 0; }
+    .bk-main h1 { text-align: center; font-size: clamp(1.6rem, 5vw, 2.2rem); margin: 8px 0 18px; }
+    .bk-card {
+      background: var(--sp-surface);
+      border: 1px solid var(--sp-border);
+      border-radius: 14px;
+      box-shadow: var(--sp-card-shadow);
+      padding: 16px 18px;
+      margin-bottom: 14px;
+    }
+    .bk-card h2 { margin: 0 0 6px; font-size: 1.15rem; }
+    .bk-card p { margin: 0 0 10px; line-height: 1.45; color: var(--sp-muted); }
+    .bk-card .button { margin: 0; display: block; width: 100%; box-sizing: border-box; text-align: center; padding: 14px 16px; border-radius: 10px; font-weight: 600; cursor: pointer; border: none; font-size: 1rem; }
+    .bk-file-label { position: relative; overflow: hidden; }
+    .bk-file-label input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+    .bk-state { font-weight: 600; color: var(--sp-text) !important; }
+    .bk-msg { min-height: 1.4em; font-weight: 600; text-align: center; margin: 4px 0 14px; }
+    .bk-msg.ok { color: #138c27; }
+    .bk-msg.err { color: #b00020; }
+    html[data-theme="dark"] .bk-msg.ok { color: #2ecc71; }
+    html[data-theme="dark"] .bk-msg.err { color: #ff5b6b; }
+    .bk-nav { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+    footer { background: var(--sp-primary); color: #fff; text-align: center; padding: 10px 12px; }
+  </style>
+  <script src="scanprof-core.js"></script>
+  <script src="theme.js" defer></script>
+  <script src="backup.js" defer></script>
+</head>
+<body>
+  <div class="bk-wrap">
+    <main class="bk-main">
+      <h1>💾 Sauvegarder / Restaurer</h1>
+
+      <div class="bk-card">
+        <h2>Sur cet iPad</h2>
+        <p class="bk-state" id="bk-current">…</p>
+        <p id="bk-last"></p>
+      </div>
+
+      <p id="bk-msg" class="bk-msg" aria-live="polite"></p>
+
+      <div class="bk-card">
+        <h2>Sauvegarder</h2>
+        <p>Crée un fichier HTML avec tous vos participants, classes, séances et applications archivées. Le fichier s'ouvre sur n'importe quel ordinateur pour consulter les résultats.</p>
+        <button type="button" id="bk-save" class="button blue">💾 Sauvegarder maintenant</button>
+      </div>
+
+      <div class="bk-card">
+        <h2>Restaurer</h2>
+        <p>Choisissez un fichier de sauvegarde ScanProf. Les données actuelles de cet iPad seront remplacées (une copie est gardée pour pouvoir annuler).</p>
+        <label class="button green bk-file-label">📥 Restaurer un fichier
+          <input type="file" id="bk-file" accept=".html,.htm,.json,text/html,application/json">
+        </label>
+      </div>
+
+      <div class="bk-card" id="bk-undo-wrap" hidden>
+        <h2>Annuler la dernière restauration</h2>
+        <p id="bk-undo-info"></p>
+        <button type="button" id="bk-undo" class="button grey">↩️ Revenir à l'état d'avant</button>
+      </div>
+
+      <div class="bk-nav">
+        <a href="index.html" class="button green">🏠 Accueil</a>
+        <a href="participants.html" class="button blue">👥 Participants</a>
+        <a href="classes.html" class="button teal">🗂 Classes & Séances</a>
+      </div>
+    </main>
+
+    <footer>
+      ScanProf - Équipe EPS Lycée Vauban - LUXEMBOURG - JB
+    </footer>
+  </div>
+</body>
+</html>

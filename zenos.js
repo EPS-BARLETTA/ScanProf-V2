@@ -387,19 +387,14 @@ function exporterGroupesCSV(){
     return;
   }
 
-  const csv = [];
-  csv.push(["Groupe","Nom","Prénom","Classe","Sexe","VMA","Distance"].join(","));
+  const rows = [];
   for (let g=0; g<groupes.length; g++){
     for (const e of groupes[g]){
-      csv.push([`Groupe ${g+1}`, e.nom, e.prenom, e.classe, e.sexe, e.vma, e.distance].map(csvSafe).join(","));
+      rows.push([`Groupe ${g+1}`, e.nom, e.prenom, e.classe, e.sexe, e.vma, e.distance]);
     }
   }
-
-  const blob = new Blob(["\uFEFF"+csv.join("\n")], {type:"text/csv;charset=utf-8;"});
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = "groupes_zenos.csv";
-  a.click();
+  const core = window.ScanProfCore;
+  core.downloadCSV(core.toCSV(["Groupe","Nom","Prénom","Classe","Sexe","VMA","Distance"], rows), "groupes_zenos.csv");
 }
 function csvSafe(t){ let s=String(t); if (/,/.test(s)) s='"'+s.replace(/"/g,'""')+'"'; return s; }
 

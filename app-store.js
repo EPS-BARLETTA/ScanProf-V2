@@ -187,7 +187,17 @@
   }
 
   function saveRecords(records) {
-    localStorage.setItem(STORE_KEY, JSON.stringify(records || []));
+    // Le texte brut du QR (rawText) faisait doublon avec « payload » :
+    // on ne le conserve plus pour économiser la mémoire de l'iPad.
+    const slim = (records || []).map((rec) => {
+      if (rec && typeof rec === "object" && "rawText" in rec) {
+        const copy = Object.assign({}, rec);
+        delete copy.rawText;
+        return copy;
+      }
+      return rec;
+    });
+    localStorage.setItem(STORE_KEY, JSON.stringify(slim));
   }
 
   function listBundles() {
@@ -210,7 +220,6 @@
     const records = loadRecords();
     const existing = records.find((rec) => rec.fingerprint === normalized.fingerprint);
     if (existing) return { ok: false, reason: "exists", record: existing };
-    normalized.rawText = rawText || "";
     normalized.source = options.source || "qr";
     normalized.savedAt = new Date().toISOString();
     records.unshift(normalized);

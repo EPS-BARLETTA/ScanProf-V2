@@ -222,9 +222,9 @@
       return;
     }
     const cols = extractColumns(data);
-    const rows = data.map(row => cols.map(key => csvValue(row[key])));
-    const csv = [cols.join(","), ...rows.map(r => r.join(","))].join("\n");
-    downloadFile(csv, `classe_${slug(cls.name)}_${slug(activity.name)}_${slug(session.name)}.csv`, "text/csv");
+    const rows = data.map(row => cols.map(key => row[key]));
+    const core = window.ScanProfCore;
+    core.downloadCSV(core.toCSV(cols, rows), `classe_${slug(cls.name)}_${slug(activity.name)}_${slug(session.name)}.csv`);
   }
 
   function exportSessionJSON(session) {
@@ -250,18 +250,19 @@
     activity.sessions.forEach(sess => {
       const data = Array.isArray(sess.data) ? sess.data : [];
       if (!data.length) {
-        const blank = header.map(col => col === "__seance" ? csvValue(sess.name) : "");
+        const blank = header.map(col => col === "__seance" ? sess.name : "");
         rows.push(blank);
         return;
       }
       data.forEach(row => {
         const obj = { ...row, __seance: sess.name };
-        rows.push(header.map(col => csvValue(obj[col])));
+        rows.push(header.map(col => obj[col]));
       });
     });
 
-    const csv = [header.join(","), ...rows.map(r => r.join(","))].join("\n");
-    downloadFile(csv, `activite_${slug(activity.name)}.csv`, "text/csv");
+    const core = window.ScanProfCore;
+    const labels = header.map(col => col === "__seance" ? "seance" : col);
+    core.downloadCSV(core.toCSV(labels, rows), `activite_${slug(activity.name)}.csv`);
   }
 
   function extractColumns(data) {

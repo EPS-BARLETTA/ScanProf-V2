@@ -79,6 +79,7 @@
     }
   </style>
 
+  <script src="scanprof-core.js"></script>
   <script src="theme.js" defer></script>
   <script src="classes-store.js" defer></script>
   <script src="participants.js" defer></script>
@@ -93,9 +94,10 @@
       <div id="local-banner" class="info-banner" role="note" aria-label="Information de stockage">
         <p>
           <strong>⚠️ Données enregistrées sur cet appareil.</strong>
-          <span class="small">Pense à exporter régulièrement (CSV / PDF), surtout sur iPad/Safari.</span>
+          <span class="small">Pense à sauvegarder régulièrement (💾 Sauvegarder / Restaurer), surtout sur iPad/Safari.</span>
         </p>
         <div class="info-actions">
+          <a href="sauvegarde.html" class="button">💾 Sauvegarder</a>
           <button type="button" class="button" onclick="exporterCSV()">📥 Export CSV</button>
           <button type="button" class="button" onclick="imprimerTableau()">🖨️ PDF</button>
           <button type="button" class="button grey" id="hide-local-banner">🙈 Masquer</button>
