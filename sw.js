@@ -4,7 +4,7 @@
  * Bibliothèque QR (lib/, ne change jamais) : cache d'abord.
  * Augmenter VERSION à chaque mise en ligne importante.
  */
-const VERSION = "scanprof-v2-2026-10-31c";
+const VERSION = "scanprof-v2-2026-10-31d";
 const PREFIX = "scanprof-v2-";
 
 const FILES = [
@@ -70,7 +70,7 @@ const OFFLINE_PAGE = '<!doctype html><meta charset="utf-8"><meta name="viewport"
 // Réseau d'abord ; la copie locale n'est utilisée après 4 s que si elle existe.
 // Sans copie, on attend le réseau : jamais de page d'erreur à cause d'un wifi lent.
 async function networkFirst(request) {
-  const network = fetch(request).then(async (response) => {
+  const network = fetch(request, { cache: "no-cache" }).then(async (response) => {
     if (response && response.ok && !response.redirected) {
       const cache = await caches.open(VERSION);
       cache.put(request, response.clone()).catch(() => {});
@@ -91,7 +91,7 @@ async function networkFirst(request) {
 
 async function staleWhileRevalidate(request) {
   const cached = await caches.match(request, { ignoreSearch: true });
-  const update = fetch(request)
+  const update = fetch(request, { cache: "no-cache" })
     .then(async (response) => {
       if (response && response.ok) {
         const cache = await caches.open(VERSION);
