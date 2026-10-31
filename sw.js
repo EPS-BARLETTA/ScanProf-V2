@@ -4,7 +4,7 @@
  * Bibliothèque QR (lib/, ne change jamais) : cache d'abord.
  * Augmenter VERSION à chaque mise en ligne importante.
  */
-const VERSION = "scanprof-v2-2026-10-31b";
+const VERSION = "scanprof-v2-2026-10-31c";
 const PREFIX = "scanprof-v2-";
 
 const FILES = [
@@ -56,31 +56,47 @@ self.addEventListener("activate", (event) => {
   );
 });
 
-function timeout(ms) {
-  return new Promise((_, reject) => setTimeout(() => reject(new Error("timeout")), ms));
+async function fromCache(request) {
+  const hit = await caches.match(request, { ignoreSearch: true });
+  if (hit) return hit;
+  if (request.mode === "navigate") return caches.match(new URL("index.html", self.registration.scope).href);
+  return undefined;
 }
 
+const OFFLINE_PAGE = '<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">' +
+  '<body style="font-family:system-ui;text-align:center;padding:40px"><h1>📚 ScanProf</h1>' +
+  '<p>Pas de connexion internet pour le moment.</p><p><button onclick="location.reload()" style="font-size:1.1rem;padding:12px 20px">Réessayer</button></p></body>';
+
+// Réseau d'abord ; la copie locale n'est utilisée après 4 s que si elle existe.
+// Sans copie, on attend le réseau : jamais de page d'erreur à cause d'un wifi lent.
 async function networkFirst(request) {
-  const cache = await caches.open(VERSION);
-  try {
-    const response = await Promise.race([fetch(request), timeout(4000)]);
-    if (response && response.ok) cache.put(request, response.clone());
+  const network = fetch(request).then(async (response) => {
+    if (response && response.ok && !response.redirected) {
+      const cache = await caches.open(VERSION);
+      cache.put(request, response.clone()).catch(() => {});
+    }
     return response;
+  });
+  network.catch(() => {});
+  const cached = await fromCache(request);
+  try {
+    if (!cached) return await network;
+    return await Promise.race([network, new Promise((resolve) => setTimeout(() => resolve(cached), 4000))]);
   } catch (err) {
-    const cached = await cache.match(request, { ignoreSearch: true });
     if (cached) return cached;
-    const home = await cache.match("index.html");
-    if (home && request.mode === "navigate") return home;
-    throw err;
+    if (request.mode === "navigate") return new Response(OFFLINE_PAGE, { headers: { "Content-Type": "text/html; charset=utf-8" } });
+    return Response.error();
   }
 }
 
 async function staleWhileRevalidate(request) {
-  const cache = await caches.open(VERSION);
-  const cached = await cache.match(request, { ignoreSearch: true });
+  const cached = await caches.match(request, { ignoreSearch: true });
   const update = fetch(request)
-    .then((response) => {
-      if (response && response.ok) cache.put(request, response.clone());
+    .then(async (response) => {
+      if (response && response.ok) {
+        const cache = await caches.open(VERSION);
+        cache.put(request, response.clone()).catch(() => {});
+      }
       return response;
     })
     .catch(() => null);
